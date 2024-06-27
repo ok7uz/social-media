@@ -7,14 +7,17 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import PasswordField
 from rest_framework_simplejwt.tokens import RefreshToken, Token
 
-from .models import User
+from .models import User, Follow
 
 
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'bio', 'birth_date', 'profile_picture']
+        fields = [
+            'id', 'username', 'first_name', 'last_name', 'bio', 'birth_date', 'profile_picture',
+            'followers_count', 'following_count'
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -72,3 +75,9 @@ class RegisterSerializer(serializers.ModelSerializer):
                 {'password': 'password fields did not match'}
             )
         return attrs
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follow
+        fields = ['id', 'follower', 'following', 'created_at']

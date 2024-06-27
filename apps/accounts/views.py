@@ -8,7 +8,6 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from .models import User
 from .serializers import UserSerializer, LoginSerializer, RegisterSerializer
 from drf_spectacular.utils import extend_schema
-from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 class LoginAPIView(APIView):

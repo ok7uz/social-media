@@ -11,7 +11,7 @@ class UserAdmin(BaseUserAdmin):
     ordering = ('username',)
     fieldsets = (
         (None, {'fields': ('username', 'first_name', 'last_name', 'profile_picture')}),
-        ('Extra informations', {'fields': ('password', 'last_login', 'date_joined')}),
+        ('Extra information', {'fields': ('password', 'last_login', 'date_joined')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
     )
     add_fieldsets = (
