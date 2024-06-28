@@ -1,13 +1,12 @@
 import uuid
 
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
+
+from apps.accounts.utils import generate_id_for
 
 
 class User(AbstractUser):
-    username_validator = UnicodeUsernameValidator()
-
     bio = models.TextField(blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
@@ -19,12 +18,21 @@ class User(AbstractUser):
         verbose_name_plural = 'users'
 
     @property
-    def followers_count(self):
+    def posts_count(self) -> int:
+        return self.posts.count()
+
+    @property
+    def followers_count(self) -> int:
         return Follow.objects.filter(following=self).count()
 
     @property
-    def following_count(self):
+    def following_count(self) -> int:
         return Follow.objects.filter(follower=self).count()
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = generate_id_for(User)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.username
@@ -36,15 +44,14 @@ class Follow(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'follows'
-        constraints = [
-            models.UniqueConstraint(fields=['follower', 'following'], name='unique_follow')
-        ]
+        db_table = 'user_follows'
         verbose_name = 'follow'
         verbose_name_plural = 'follows'
 
     def save(self, *args, **kwargs):
         if self.follower != self.following:
+            if not self.id:
+                self.id = generate_id_for(Follow)
             super().save(*args, **kwargs)
 
     def __str__(self):

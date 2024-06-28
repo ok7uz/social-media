@@ -4,30 +4,24 @@ Social Media is a social media platform that allows users to share photos and vi
 
 ## TODO
 
-### User
-- [x] **Model**: Define user attributes.
-- [x] **Auth**: Implement registration, login, logout, password reset.
-- [x] **CRUD**: Create, read, update, delete user profiles.
+### accounts
 
-### Follow
-- [x] **Model**: Define follow relationships (follower, following).
-- [ ] **CRUD**: Implement follow/unfollow users, display followers/following lists.
+- [x] User model
+- [x] Login
+- [x] Register
+- [x] Profile
+- [x] User posts, followers and following
+- [x] Follow model
+- [x] Followers and following
 
-### Post
-- [ ] **Model**: Define post attributes (user, image, caption, timestamp).
-- [ ] **CRUD**: Create, read/display, update, delete posts.
+### posts
 
-### Like
-- [ ] **Model**: Define like attributes (user, post, timestamp).
-- [ ] **CRUD**: Implement like/unlike posts, display likes.
-
-### Comment
-- [ ] **Model**: Define comment attributes (user, post, text, timestamp).
-- [ ] **CRUD**: Create, read/display, update, delete comments.
-
-### Additional Features
-- [ ] Notifications: Implement notifications for likes, comments, follows, etc.
-- [ ] Messaging: Implement direct messaging between users.
-- [ ] Search: Implement search functionality for users and posts.
-- [ ] Explore: Implement content discovery based on user interests.
-interests and activity
+- [x] Post model
+- [x] Post CRUD
+- [x] Like model
+- [x] Like CRUD
+- [x] Post's likes count
+- [x] Saved Post model
+- [x] Save post
+- [x] Post liked and saved for user
+- [ ] Post Comment model

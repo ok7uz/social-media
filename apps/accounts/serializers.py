@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name', 'bio', 'birth_date', 'profile_picture',
-            'followers_count', 'following_count'
+            'posts_count', 'followers_count', 'following_count'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -25,6 +25,13 @@ class UserSerializer(serializers.ModelSerializer):
         if request and request.method == 'PUT':
             for field in self.fields.values():
                 field.required = False
+
+
+class UserListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name', 'profile_picture')
 
 
 class LoginSerializer(serializers.Serializer):
@@ -57,13 +64,18 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'password2', 'first_name', 'last_name']
+        fields = (
+            'username', 'password', 'password2', 'first_name', 'last_name', 'bio', 'birth_date', 'profile_picture'
+        )
 
     def create(self, validated_data):
         user = User.objects.create(
             username=validated_data['username'],
             first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
+            last_name=validated_data['last_name'] if 'last_name' in validated_data else None,
+            bio=validated_data['bio'] if 'bio' in validated_data else None,
+            birth_date=validated_data['birth_date'] if 'birth_date' in validated_data else None,
+            profile_picture=validated_data['profile_picture'] if 'profile_picture' in validated_data else None,
         )
         user.set_password(validated_data.pop('password'))
         user.save()
@@ -78,6 +90,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Follow
         fields = ['id', 'follower', 'following', 'created_at']
+
+    def create(self, validated_data):
+        follow, _ = Follow.objects.get_or_create(**validated_data)
+        return follow
+
+    def validate(self, attrs):
+        if attrs['follower'] == attrs['following']:
+            raise serializers.ValidationError('You cannot follow yourself')
+        return attrs

@@ -8,7 +8,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 LOCAL_APPS = [
-    'apps.accounts.apps.AccountsConfig'
+    'apps.accounts.apps.AccountsConfig',
+    'apps.posts.apps.PostsConfig',
 ]
 
 THIRD_PARTY_APPS = [
@@ -100,7 +101,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DATETIME_FORMAT': "%Y-%m-%d %H:%M:%S",
 }
 
 SIMPLE_JWT = {
@@ -114,4 +116,9 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Social Media',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'CONTACT': {
+        'name': 'Komronbek Obloev',
+        'url': 'https://github.com/ok7uz',
+        'email': 'komronbekobloev@gmail.com',
+    },
 }

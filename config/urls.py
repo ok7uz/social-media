@@ -9,7 +9,8 @@ urlpatterns = [
     path('api/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path('admin/', admin.site.urls),
-    path('', include('apps.accounts.urls')),
+    path('api/', include('apps.accounts.urls')),
+    path('api/', include('apps.posts.urls'))
 ]
 
 if settings.DEBUG:
