@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 
 from apps.accounts.models import User
+from apps.posts.utils import generate_id_for
 
 
 class Tag(models.Model):
@@ -21,7 +22,6 @@ class Tag(models.Model):
 
 
 class Post(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     title = models.CharField(max_length=255)
     content = models.TextField()
@@ -39,6 +39,21 @@ class Post(models.Model):
     @property
     def likes_count(self) -> int:
         return Like.objects.filter(post=self).count()
+
+    @property
+    def comments_count(self) -> int:
+        return self.comments.count()
+    
+    def add_tags(self, tags: list[str]) -> None:
+        self.tags.clear()
+        for tag in tags:
+            tag_instance, _ = Tag.objects.get_or_create(name=tag)
+            self.tags.add(tag_instance)
+    
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = generate_id_for(Post)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -65,6 +80,11 @@ class Like(models.Model):
         db_table = 'post_likes'
         verbose_name = 'like'
         verbose_name_plural = 'likes'
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = generate_id_for(Like)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.user} likes {self.post}'

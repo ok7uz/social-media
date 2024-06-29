@@ -1,8 +1,3 @@
-from apps.posts.models import Tag
+def generate_id_for(model) -> int:
+    return 10 ** 9 + 1 if not model.objects.exists() else model.objects.latest('id').id + 1
 
-
-def add_tags_to_post(post, tags):
-    post.tags.clear()
-    for tag in tags:
-        tag_instance, _ = Tag.objects.get_or_create(name=tag)
-        post.tags.add(tag_instance)

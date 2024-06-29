@@ -10,6 +10,7 @@ SECRET_KEY = config('SECRET_KEY')
 LOCAL_APPS = [
     'apps.accounts.apps.AccountsConfig',
     'apps.posts.apps.PostsConfig',
+    'apps.comments.apps.CommentsConfig'
 ]
 
 THIRD_PARTY_APPS = [

@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
 from apps.accounts.serializers import UserListSerializer
-from apps.posts.models import Post, Tag, Like, SavedPost
-from apps.posts.utils import add_tags_to_post
+from apps.posts.models import Post, Like, SavedPost
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -14,7 +13,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = (
-            'id', 'user', 'title', 'content', 'image', 'tags',
+            'id', 'user', 'title', 'content', 'image', 'tags', 'comments_count',
             'likes_count', 'liked', 'saved', 'created_at', 'updated_at'
         )
 
@@ -29,12 +28,12 @@ class PostSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tags') if 'tags' in validated_data else None
         post = Post.objects.create(**validated_data)
-        add_tags_to_post(post, tags) if tags else None
+        post.add_tags(tags) if tags else None
         return post
 
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags') if 'tags' in validated_data else None
-        add_tags_to_post(instance, tags) if tags else None
+        instance.add_tags(tags) if tags else None
         return super().update(instance, validated_data)
 
 
@@ -42,8 +41,11 @@ class PostWithoutUserSerializer(PostSerializer):
 
     class Meta:
         model = Post
-        fields = ('id', 'title', 'content', 'image', 'tags', 'likes_count', 'created_at', 'updated_at')
-
+        fields = (
+            'id', 'title', 'content', 'image', 'tags', 'likes_count',
+            'comments_count', 'created_at', 'updated_at'
+        )
+            
 
 class SavedPostSerializer(serializers.ModelSerializer):
 
