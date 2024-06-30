@@ -22,10 +22,10 @@ class Tag(BaseModel):
 
 
 class Post(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts', db_index=True)
     caption = models.CharField(max_length=255)
     image = models.ImageField(upload_to='posts/', null=True, blank=True)
-    tags = models.ManyToManyField(Tag, related_name='posts')
+    tags = models.ManyToManyField(Tag, related_name='posts', db_index=True)
 
     class Meta:
         db_table = 'posts'
@@ -52,7 +52,7 @@ class Post(BaseModel):
 
         
 class Media(BaseModel):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='media')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='media', db_index=True)
     image = models.ImageField(upload_to='media-files/', null=True, blank=True)
     video = models.FileField(upload_to='media-files/', null=True, blank=True)
     
@@ -67,8 +67,8 @@ class Media(BaseModel):
 
 
 class SavedPost(BaseModel):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='saved')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='saved', db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved', db_index=True)
 
     class Meta:
         db_table = 'post_saved'
@@ -80,8 +80,8 @@ class SavedPost(BaseModel):
 
 
 class Like(BaseModel):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes', db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes', db_index=True)
 
     class Meta:
         db_table = 'post_likes'

@@ -37,12 +37,13 @@ class UserSerializer(serializers.ModelSerializer):
                 field.required = False
                 
     def update(self, instance, validated_data):
-        interests = validated_data.pop('interest_list', list(instance.interests.all().values_list('name', flat=True)))
+        interests = validated_data.pop('interest_list', None)
         super().update(instance, validated_data)
-        instance.interests.clear()
-        for interest in interests:
-            tag, _ = Tag.objects.get_or_create(name=interest)
-            instance.interests.add(tag)
+        if interests:
+            instance.interests.clear()
+            for interest in interests:
+                tag, _ = Tag.objects.get_or_create(name=interest)
+                instance.interests.add(tag)
         return instance
 
 
@@ -80,26 +81,30 @@ class LoginSerializer(serializers.Serializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
-    interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
-    interests = InterestSerializer(many=True, read_only=True)
+    # interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    # interests = InterestSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
         fields = (
-            'username', 'password', 'password2', 'first_name', 'last_name', 'bio', 'birth_date',
-            'profile_picture', 'cover_image', 'interest_list', 'interests'
+            'username', 'password', 'password2', 'first_name', 'last_name'
         )
 
     def create(self, validated_data):
-        password = validated_data.pop('password')
-        interests = validated_data.pop('interest_list', [])
-        del validated_data['password2']
-        user = User.objects.create(**validated_data)
-        user.set_password(password)
-        user.save()
-        for interest in interests:
-            tag, _ = Tag.objects.get_or_create(name=interest)
-            user.interests.add(tag)
+        # interests = validated_data.pop('interest_list', [])
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            password=validated_data['password'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+            # bio=validated_data.get('bio', ''),
+            # birth_date=validated_data.get('birth_date', None),
+            # profile_picture=validated_data.get('profile_picture', None),
+            # cover_image=validated_data.get('cover_image', None)
+        )
+        # for interest in interests:
+        #     tag, _ = Tag.objects.get_or_create(name=interest)
+        #     user.interests.add(tag)
         return user
 
     def validate(self, attrs):

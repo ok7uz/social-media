@@ -27,7 +27,7 @@ class User(AbstractUser, BaseModel):
     birth_date = models.DateField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
     cover_image = models.ImageField(upload_to='covers/', null=True, blank=True)
-    interests = models.ManyToManyField('posts.Tag', related_name='users', blank=True)
+    interests = models.ManyToManyField('posts.Tag', related_name='users', blank=True, db_index=True)
     
     start_id = 10 ** 6 + 1
 
@@ -54,11 +54,12 @@ class User(AbstractUser, BaseModel):
 
 
 class Follow(BaseModel):
-    follower = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE)
-    following = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE)
+    follower = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE, db_index=True)
+    following = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE, db_index=True)
 
     class Meta:
         db_table = 'user_follows'
+        unique_together = ('follower', 'following')
         verbose_name = 'follow'
         verbose_name_plural = 'follows'
 

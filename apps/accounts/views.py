@@ -60,7 +60,7 @@ class ProfileAPIView(APIView):
         tags=['profile'],
         description='Get profile info'
     )
-    def get(self, request, username=None):
+    def get(self, request):
         user = request.user
         serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)
@@ -71,7 +71,7 @@ class ProfileAPIView(APIView):
         tags=['profile'],
         description='Update profile info'
     )
-    def put(self, request, username=None):
+    def put(self, request):
         user = request.user
         serializer = UserSerializer(user, data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -124,8 +124,8 @@ class FollowAPIView(APIView):
         serializer = FollowSerializer(data=data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-        user_serializer = UserSerializer(user, context={'request': request})
-        return Response(user_serializer.data)
+            return Response({'detail': 'Successfully followed'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserFollowersAPIView(APIView):
