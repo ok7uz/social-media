@@ -13,6 +13,8 @@ Social Media is a social media platform that allows users to share photos and vi
 - [x] User posts, followers, and following
 - [x] Follow model
 - [x] Followers and following
+- [x] User interests
+- [x] Adding cover image to user profile
 
 ### Posts
 
@@ -29,10 +31,11 @@ Social Media is a social media platform that allows users to share photos and vi
 
 - [x] Comment model and serializers
 - [x] Comment on posts
-- [ ] Edit and delete comments
+- [x] Edit and delete comments
 - [ ] Reply to comments
 - [x] Post's comments count
 
 ### Extra
 
-- [ ] Create custom integer ID fields for all models
+- [ ] Creating custom integer ID fields for all models
+- [ ] Checking that the user is the author during PUT and DELETE

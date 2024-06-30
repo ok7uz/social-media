@@ -10,6 +10,7 @@ class User(AbstractUser):
     bio = models.TextField(blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
+    cover_image = models.ImageField(upload_to='covers/', null=True, blank=True)
 
     class Meta:
         db_table = 'users'
@@ -56,3 +57,17 @@ class Follow(models.Model):
 
     def __str__(self):
         return f'{self.follower} follows {self.following}'
+
+
+class Interest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='interests')
+    tag = models.ForeignKey('posts.Tag', on_delete=models.CASCADE, related_name='interests')
+
+    class Meta:
+        db_table = 'user_interests'
+        ordering = ('user', 'tag')
+        verbose_name = 'interest'
+        verbose_name_plural = 'interests'
+
+    def __str__(self):
+        return self.name

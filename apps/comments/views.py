@@ -36,3 +36,37 @@ class CommentAPIView(APIView):
             serializer.save(user=request.user, post=post)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
+
+
+class CommentDetailAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(
+        responses={200: CommentSerializer},
+        tags=['comment'],
+        description='Get comment by id'
+    )
+    def get(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+        serializer = CommentSerializer(comment, context={'request': request})
+        return Response(serializer.data)
+
+    @extend_schema(
+        request=CommentSerializer,
+        responses={200: CommentSerializer},
+        tags=['comment'],
+        description='Update comment by id'
+    )
+    def put(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+        serializer = CommentSerializer(comment, data=request.data, context={'request': request})
+
+    @extend_schema(
+        responses={204: None},
+        tags=['comment'],
+        description='Delete comment by id'
+    )
+    def delete(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+        comment.delete()
+        return Response(status=204)
