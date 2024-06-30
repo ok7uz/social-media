@@ -8,7 +8,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from apps.posts.models import Tag
 
 from .models import User
-from .serializers import InterestSerializer, UserSerializer, LoginSerializer, RegisterSerializer, FollowSerializer, UserListSerializer
+from .serializers import UserSerializer, LoginSerializer, RegisterSerializer, FollowSerializer, UserListSerializer
 from drf_spectacular.utils import extend_schema
 
 
@@ -159,28 +159,3 @@ class UserFollowingAPIView(APIView):
         serializer = UserListSerializer(following, many=True, context={'request': request})
         return Response(serializer.data)
 
-
-class InterestAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    @extend_schema(
-        responses={200: InterestSerializer()},
-        tags=['interest'],
-        description='Get user interests'
-    )
-    def get(self, request):
-        user = request.user
-        tags = Tag.objects.filter(interests__user=user).values_list('name', flat=True)
-        serializer = InterestSerializer({'tags': list(tags)})
-        return Response(serializer.data)
-    
-    @extend_schema(
-        request=InterestSerializer,
-        tags=['interest'],
-        description='Update user interest'
-    )
-    def put(self, request):
-        serializer = InterestSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-        return Response(serializer.data)

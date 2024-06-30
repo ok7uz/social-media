@@ -6,9 +6,10 @@ from apps.accounts.models import User, Follow
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'first_name', 'last_name')
+    list_display = ('username', 'first_name', 'last_name', 'created_at')
     readonly_fields = ('last_login', 'date_joined')
     ordering = ('username',)
+    filter_horizontal = ('interests',)
     fieldsets = (
         (None, {'fields': ('username', 'first_name', 'last_name', 'profile_picture')}),
         ('Extra information', {'fields': ('password', 'last_login', 'date_joined')}),
@@ -17,11 +18,11 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'first_name', 'last_name', 'profile_picture', 'password1', 'password2'),
+            'fields': ('username', 'first_name', 'last_name', 'profile_picture', 'password1', 'password2'),
         }),
     )
 
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ('follower', 'following')
+    list_display = ('follower', 'following', 'created_at')

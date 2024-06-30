@@ -8,17 +8,25 @@ from rest_framework_simplejwt.serializers import PasswordField
 from rest_framework_simplejwt.tokens import RefreshToken, Token
 
 from apps.posts.models import Tag
+from .models import User, Follow
 
-from .models import Interest, User, Follow
 
+class InterestSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Tag
+        fields = ('id', 'name')
+        
 
 class UserSerializer(serializers.ModelSerializer):
+    interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    interests = InterestSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name', 'bio', 'birth_date', 'profile_picture',
-            'cover_image', 'posts_count', 'followers_count', 'following_count'
+            'cover_image', 'post_count', 'follower_count', 'following_count', 'interest_list', 'interests',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -27,6 +35,15 @@ class UserSerializer(serializers.ModelSerializer):
         if request and request.method == 'PUT':
             for field in self.fields.values():
                 field.required = False
+                
+    def update(self, instance, validated_data):
+        interests = validated_data.pop('interest_list', list(instance.interests.all().values_list('name', flat=True)))
+        super().update(instance, validated_data)
+        instance.interests.clear()
+        for interest in interests:
+            tag, _ = Tag.objects.get_or_create(name=interest)
+            instance.interests.add(tag)
+        return instance
 
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -63,25 +80,25 @@ class LoginSerializer(serializers.Serializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
+    interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    interests = InterestSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
         fields = (
-            'username', 'password', 'password2', 'first_name', 'last_name', 'bio', 'birth_date', 'profile_picture'
+            'username', 'password', 'password2', 'first_name', 'last_name', 'bio', 'birth_date',
+            'profile_picture', 'interest_list', 'interests'
         )
 
     def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data['username'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'] if 'last_name' in validated_data else None,
-            bio=validated_data['bio'] if 'bio' in validated_data else None,
-            birth_date=validated_data['birth_date'] if 'birth_date' in validated_data else None,
-            profile_picture=validated_data['profile_picture'] if 'profile_picture' in validated_data else None,
-            cover_image=validated_data['cover_image'] if 'cover_image' in validated_data else None
-        )
-        user.set_password(validated_data.pop('password'))
-        user.save()
+        password = validated_data.pop('password')
+        interests = validated_data.pop('interest_list', [])
+        del validated_data['password2']
+        user = User.objects.create(**validated_data)
+        user.set_password(password)
+        for interest in interests:
+            tag, _ = Tag.objects.get_or_create(name=interest)
+            user.interests.add(tag)
         return user
 
     def validate(self, attrs):
@@ -106,21 +123,5 @@ class FollowSerializer(serializers.ModelSerializer):
         if attrs['follower'] == attrs['following']:
             raise serializers.ValidationError('You cannot follow yourself')
         return attrs
-
-
-class InterestSerializer(serializers.Serializer):
-    tags = serializers.ListField(child=serializers.CharField())
-
-    class Meta:
-        fields = ('tags',)
-
-    def create(self, validated_data):
-        user = self.context.get('request').user
-        tags = validated_data.pop('tags')
-        Interest.objects.filter(user=user).delete()
-        for tag in tags:
-            tag_instance, _ = Tag.objects.get_or_create(name=tag)
-            Interest.objects.get_or_create(user=user, tag=tag_instance)
-        return {'tags': tags}
 
     

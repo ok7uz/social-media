@@ -37,5 +37,5 @@ Social Media is a social media platform that allows users to share photos and vi
 
 ### Extra
 
-- [ ] Creating custom integer ID fields for all models
+- [x] Creating base model with start ID
 - [ ] Checking that the user is the author during PUT and DELETE
