@@ -87,7 +87,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'username', 'password', 'password2', 'first_name', 'last_name', 'bio', 'birth_date',
-            'profile_picture', 'interest_list', 'interests'
+            'profile_picture', 'cover_image', 'interest_list', 'interests'
         )
 
     def create(self, validated_data):
@@ -96,6 +96,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         del validated_data['password2']
         user = User.objects.create(**validated_data)
         user.set_password(password)
+        user.save()
         for interest in interests:
             tag, _ = Tag.objects.get_or_create(name=interest)
             user.interests.add(tag)
