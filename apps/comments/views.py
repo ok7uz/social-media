@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
@@ -60,6 +61,10 @@ class CommentDetailAPIView(APIView):
     def put(self, request, comment_id):
         comment = get_object_or_404(Comment, id=comment_id)
         serializer = CommentSerializer(comment, data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         responses={204: None},
@@ -69,4 +74,4 @@ class CommentDetailAPIView(APIView):
     def delete(self, request, comment_id):
         comment = get_object_or_404(Comment, id=comment_id)
         comment.delete()
-        return Response(status=204)
+        return Response(status=status.HTTP_204_NO_CONTENT)

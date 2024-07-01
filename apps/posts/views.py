@@ -101,6 +101,7 @@ class LikeAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
+        request=None,
         responses={200: None},
         tags=['post like'],
         description='Like post'
@@ -125,6 +126,7 @@ class SavePostAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
+        request=None,
         responses={200: None},
         tags=['post save'],
         description='Save post'

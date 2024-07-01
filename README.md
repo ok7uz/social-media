@@ -15,6 +15,7 @@ Social Media is a social media platform that allows users to share photos and vi
 - [x] Followers and following
 - [x] User interests
 - [x] Adding cover image to user profile
+- [ ] Authentication with social apps (Google, Apple, Facebook, TikTok)
 
 ### Posts
 

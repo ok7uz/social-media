@@ -1,8 +1,6 @@
 from rest_framework import serializers
-from rest_framework.generics import get_object_or_404
 
 from apps.accounts.serializers import UserListSerializer
-from apps.posts.models import Post
 from apps.comments.models import Comment
 
 
