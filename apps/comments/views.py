@@ -15,7 +15,7 @@ class CommentAPIView(APIView):
 
     @extend_schema(
         responses={200: CommentSerializer},
-        tags=['comment'],
+        tags=['Comment'],
         description='Get all comments for post'
     )
     def get(self, request, post_id):
@@ -27,7 +27,7 @@ class CommentAPIView(APIView):
     @extend_schema(
         request=CommentSerializer,
         responses={201: CommentSerializer},
-        tags=['comment'],
+        tags=['Comment'],
         description='Create new comment'
     )
     def post(self, request, post_id):
@@ -44,7 +44,7 @@ class CommentDetailAPIView(APIView):
 
     @extend_schema(
         responses={200: CommentSerializer},
-        tags=['comment'],
+        tags=['Comment'],
         description='Get comment by id'
     )
     def get(self, request, comment_id):
@@ -55,7 +55,7 @@ class CommentDetailAPIView(APIView):
     @extend_schema(
         request=CommentSerializer,
         responses={200: CommentSerializer},
-        tags=['comment'],
+        tags=['Comment'],
         description='Update comment by id'
     )
     def put(self, request, comment_id):
@@ -68,7 +68,7 @@ class CommentDetailAPIView(APIView):
 
     @extend_schema(
         responses={204: None},
-        tags=['comment'],
+        tags=['Comment'],
         description='Delete comment by id'
     )
     def delete(self, request, comment_id):

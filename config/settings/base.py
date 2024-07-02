@@ -123,3 +123,5 @@ SPECTACULAR_SETTINGS = {
         'email': 'komronbekobloev@gmail.com',
     },
 }
+
+CORS_ALLOW_ALL_ORIGINS = True

@@ -4,12 +4,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-
-from apps.posts.models import Tag
-
-from .models import User
-from .serializers import UserSerializer, LoginSerializer, RegisterSerializer, FollowSerializer, UserListSerializer
 from drf_spectacular.utils import extend_schema
+
+from apps.accounts.serializers import *
 
 
 class LoginAPIView(APIView):
@@ -19,7 +16,7 @@ class LoginAPIView(APIView):
     @extend_schema(
         request=serializer_class,
         responses={200: serializer_class},
-        tags=['auth'],
+        tags=['Auth'],
         description='Login user'
     )
     def post(self, request):
@@ -38,17 +35,37 @@ class RegisterAPIView(APIView):
     @extend_schema(
         request=serializer_class,
         responses={201: serializer_class},
-        tags=['auth'],
+        tags=['Auth'],
         description='Register new user'
     )
     def post(self, request):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            user_serializer = UserSerializer(serializer.instance, context={'request': request})
+            user_serializer = self.serializer_class(serializer.instance, context={'request': request})
             return Response(user_serializer.data, status=201)
 
         return Response(serializer.errors, status=400)
+
+
+class ChangePasswordAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ChangePasswordSerializer
+
+    @extend_schema(
+        request=ChangePasswordSerializer,
+        responses={200: 'Password successfully updated.'},
+        tags=['Auth'],
+        description='Change user password'
+    )
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Password successfully updated."}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProfileAPIView(APIView):
@@ -57,7 +74,7 @@ class ProfileAPIView(APIView):
 
     @extend_schema(
         responses={200: UserSerializer},
-        tags=['profile'],
+        tags=['Profile'],
         description='Get profile info'
     )
     def get(self, request):
@@ -68,7 +85,7 @@ class ProfileAPIView(APIView):
     @extend_schema(
         request=UserSerializer,
         responses={200: UserSerializer},
-        tags=['profile'],
+        tags=['Profile'],
         description='Update profile info'
     )
     def put(self, request):
@@ -81,7 +98,7 @@ class ProfileAPIView(APIView):
 
     @extend_schema(
         responses={204: None},
-        tags=['profile'],
+        tags=['Profile'],
         description='Delete profile'
     )
     def delete(self, request):
@@ -96,7 +113,7 @@ class UserProfileAPIView(APIView):
 
     @extend_schema(
         responses={200: UserSerializer},
-        tags=['profile'],
+        tags=['User'],
         description='Get profile info'
     )
     def get(self, request, username=None):
@@ -112,7 +129,7 @@ class FollowAPIView(APIView):
     @extend_schema(
         request=FollowSerializer,
         responses={200: serializer_class},
-        tags=['follow'],
+        tags=['Follow'],
         description='Follow user'
     )
     def post(self, request, username=None):
@@ -134,7 +151,7 @@ class UserFollowersAPIView(APIView):
 
     @extend_schema(
         responses={200: UserListSerializer(many=True)},
-        tags=['follow'],
+        tags=['Follow'],
         description='Get followers'
     )
     def get(self, request, username=None):
@@ -150,7 +167,7 @@ class UserFollowingAPIView(APIView):
 
     @extend_schema(
         responses={200: UserListSerializer(many=True)},
-        tags=['follow'],
+        tags=['Follow'],
         description='Get following'
     )
     def get(self, request, username=None):
@@ -158,4 +175,3 @@ class UserFollowingAPIView(APIView):
         following = User.objects.filter(followers__follower=user)
         serializer = UserListSerializer(following, many=True, context={'request': request})
         return Response(serializer.data)
-

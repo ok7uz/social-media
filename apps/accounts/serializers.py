@@ -79,40 +79,86 @@ class LoginSerializer(serializers.Serializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(write_only=True, required=True)
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
-    # interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
-    # interests = InterestSerializer(many=True, read_only=True)
+
+    first_name = serializers.CharField(write_only=True, required=True)
+    last_name = serializers.CharField(write_only=True, required=False)
+    birth_date = serializers.DateField(write_only=True, required=True)
+    profile_picture = serializers.CharField(write_only=True, required=False)
+
+    interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+
+    refresh = serializers.CharField(read_only=True)
+    access = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
         fields = (
-            'username', 'password', 'password2', 'first_name', 'last_name'
+            'username', 'password', 'password2', 'first_name', 'last_name', 'birth_date',
+            'profile_picture', 'interest_list', 'refresh', 'access'
         )
 
     def create(self, validated_data):
-        # interests = validated_data.pop('interest_list', [])
+        interests = validated_data.pop('interest_list', [])
         user = User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
-            first_name=validated_data.get('first_name', ''),
+            first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name', ''),
-            # bio=validated_data.get('bio', ''),
-            # birth_date=validated_data.get('birth_date', None),
-            # profile_picture=validated_data.get('profile_picture', None),
-            # cover_image=validated_data.get('cover_image', None)
         )
-        # for interest in interests:
-        #     tag, _ = Tag.objects.get_or_create(name=interest)
-        #     user.interests.add(tag)
+        for interest in interests:
+            tag, _ = Tag.objects.get_or_create(name=interest)
+            user.interests.add(tag)
+
+        refresh = RefreshToken.for_user(user)
+        user.refresh = str(refresh)
+        user.access = str(refresh.access_token)
         return user
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['refresh'] = instance.refresh
+        ret['access'] = instance.access
+        return ret
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError(
-                {'password': 'password fields did not match'}
+                {'password': 'Password fields did not match'}
             )
         return attrs
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    new_password2 = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        user = self.context['request'].user
+        validate_password(value, user=user)
+        return value
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Your old password was entered incorrectly. Please enter it again.")
+        return value
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['new_password2']:
+            raise serializers.ValidationError(
+                {'new_password': 'Password fields did not match'}
+            )
+        return attrs
+    
+    def create(self, validated_data):
+        user = self.context['request'].user
+        user.set_password(validated_data['new_password'])
+        user.save()
+        return user
 
 
 class FollowSerializer(serializers.ModelSerializer):

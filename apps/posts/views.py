@@ -15,7 +15,7 @@ class PostAPIView(APIView):
 
     @extend_schema(
         responses={200: PostSerializer(many=True)},
-        tags=['post'],
+        tags=['Post'],
         description='Get recommended posts'
     )
     def get(self, request):
@@ -31,7 +31,7 @@ class PostAPIView(APIView):
     @extend_schema(
         request=PostSerializer,
         responses={201: PostSerializer},
-        tags=['post'],
+        tags=['Post'],
         description='Create new post'
     )
     def post(self, request):
@@ -48,7 +48,7 @@ class PostDetailAPIView(APIView):
 
     @extend_schema(
         responses={200: PostSerializer},
-        tags=['post'],
+        tags=['Post'],
         description='Get post info'
     )
     def get(self, request, post_id):
@@ -59,7 +59,7 @@ class PostDetailAPIView(APIView):
     @extend_schema(
         request=PostSerializer,
         responses={200: PostSerializer},
-        tags=['post'],
+        tags=['Post'],
         description='Update post info'
     )
     def put(self, request, post_id):
@@ -72,7 +72,7 @@ class PostDetailAPIView(APIView):
 
     @extend_schema(
         responses={204: None},
-        tags=['post'],
+        tags=['Post'],
         description='Delete post'
     )
     def delete(self, request, post_id):
@@ -87,7 +87,7 @@ class UserPostAPIView(APIView):
 
     @extend_schema(
         responses={200: PostSerializer(many=True)},
-        tags=['post'],
+        tags=['User'],
         description='Get all posts for user'
     )
     def get(self, request, username=None):
@@ -103,7 +103,7 @@ class LikeAPIView(APIView):
     @extend_schema(
         request=None,
         responses={200: None},
-        tags=['post like'],
+        tags=['Post Like'],
         description='Like post'
     )
     def post(self, request, post_id):
@@ -113,7 +113,7 @@ class LikeAPIView(APIView):
 
     @extend_schema(
         responses={200: None},
-        tags=['post like'],
+        tags=['Post Like'],
         description='Unlike post'
     )
     def delete(self, request, post_id):
@@ -128,7 +128,7 @@ class SavePostAPIView(APIView):
     @extend_schema(
         request=None,
         responses={200: None},
-        tags=['post save'],
+        tags=['Post Save'],
         description='Save post'
     )
     def post(self, request, post_id):
@@ -138,7 +138,7 @@ class SavePostAPIView(APIView):
 
     @extend_schema(
         responses={200: None},
-        tags=['post save'],
+        tags=['Post Save'],
         description='Unsave post'
     )
     def delete(self, request, post_id):
@@ -152,7 +152,7 @@ class SavedPostAPIView(APIView):
 
     @extend_schema(
         responses={200: PostSerializer(many=True)},
-        tags=['post save'],
+        tags=['Post Save'],
         description='Get saved posts'
     )
     def get(self, request):
