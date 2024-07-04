@@ -16,7 +16,12 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'post_count')
+    readonly_fields = ('post_count',)
+
+    @staticmethod
+    def post_count(obj):
+        return obj.posts.count()
     
     
 @admin.register(SavedPost)

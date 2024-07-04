@@ -31,7 +31,7 @@ class User(AbstractUser, BaseModel):
 
     class Meta:
         db_table = 'users'
-        ordering = ('first_name',)
+        ordering = ('-created_at',)
         verbose_name = 'user'
         verbose_name_plural = 'users'
 

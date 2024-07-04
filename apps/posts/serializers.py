@@ -22,7 +22,7 @@ class PostSerializer(serializers.ModelSerializer):
     tag_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     tags = TagSerializer(many=True, read_only=True)
     user = UserListSerializer(read_only=True)
-    media = MediaSerializer(many=True, required=False)
+    media = MediaSerializer(many=True, required=True)
     has_liked = serializers.SerializerMethodField()
     has_saved = serializers.SerializerMethodField()
 

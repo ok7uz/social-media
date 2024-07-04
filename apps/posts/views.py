@@ -22,9 +22,6 @@ class PostAPIView(APIView):
         user = request.user
         followed_users = User.objects.filter(followers__follower=user)
         recommended_posts = Post.objects.filter(user__in=followed_users)
-        seen_posts = user.likes.values_list('post', flat=True)
-        recommended_posts = recommended_posts.exclude(id__in=seen_posts)
-        recommended_posts = recommended_posts.order_by('-created_at')
         serializer = PostSerializer(recommended_posts, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -158,4 +155,19 @@ class SavedPostAPIView(APIView):
     def get(self, request):
         posts = Post.objects.filter(saved__user=request.user)
         serializer = PostSerializer(posts, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class DiscoverPostAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(
+        responses={200: PostSerializer(many=True)},
+        tags=['Post'],
+        description='Get discover posts'
+    )
+    def get(self, request):
+        user = request.user
+        discover_posts = Post.objects.filter(tags__in=user.interests.all())
+        serializer = PostSerializer(discover_posts, many=True, context={'request': request})
         return Response(serializer.data)

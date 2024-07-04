@@ -2,8 +2,10 @@ from django.urls import path
 
 from apps.posts.views import *
 
+
 urlpatterns = [
     path('posts/', PostAPIView.as_view(), name='post-list'),
+    path('discover/', DiscoverPostAPIView.as_view(), name='discover-posts'),
     path('posts/saved/', SavedPostAPIView.as_view(), name='post-saved'),
     path('posts/<int:post_id>/', PostDetailAPIView.as_view(), name='post-detail'),
     path('posts/<int:post_id>/like/', LikeAPIView.as_view(), name='post-like'),
