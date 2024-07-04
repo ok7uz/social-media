@@ -1,3 +1,6 @@
+from datetime import date
+from typing import Optional
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -46,6 +49,16 @@ class User(AbstractUser, BaseModel):
     @property
     def following_count(self) -> int:
         return Follow.objects.filter(follower=self).count()
+
+    @property
+    def age(self) -> Optional[int]:
+        if self.birth_date:
+            today = date.today()
+            age = today.year - self.birth_date.year
+            if (today.month, today.day) < (self.birth_date.month, self.birth_date.day):
+                age -= 1
+            return age
+        return None
 
     def __str__(self):
         return self.username
