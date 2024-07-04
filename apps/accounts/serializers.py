@@ -86,7 +86,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(write_only=True, required=True)
     last_name = serializers.CharField(write_only=True, required=False)
     birth_date = serializers.DateField(write_only=True, required=True)
-    profile_picture = serializers.CharField(write_only=True, required=False)
+    profile_picture = serializers.FileField(write_only=True, required=False)
 
     interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
 
