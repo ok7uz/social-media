@@ -107,6 +107,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
             first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name', ''),
+            birth_date=validated_data.get('birth_date'),
+            profile_picture=validated_data.get('profile_picture'),
         )
         for interest in interests:
             tag, _ = Tag.objects.get_or_create(name=interest)
