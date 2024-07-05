@@ -57,7 +57,7 @@ class UsernameCheckAPIView(APIView):
         tags=['Auth'],
         description='Check username availability'
     )
-    def get(self, request):
+    def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -73,7 +73,7 @@ class PasswordCheckAPIView(APIView):
         tags=['Auth'],
         description='Check password validity'
     )
-    def get(self, request):
+    def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
