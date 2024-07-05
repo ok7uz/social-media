@@ -1,4 +1,5 @@
 from random import sample
+from django.db import transaction
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
 from django.contrib.auth.password_validation import validate_password
@@ -6,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import PasswordField
 from rest_framework_simplejwt.tokens import RefreshToken, Token
 
@@ -74,12 +76,16 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, attrs):
         user = authenticate(**attrs)
         if not user:
-            raise AuthenticationFailed()
+            raise AuthenticationFailed(detail='Invalid username or password')
 
-        data = {}
+        if not user.is_active:
+            raise AuthenticationFailed(detail='User account is disabled')
+
         refresh = self.get_token(user)
-        data['refresh'] = str(refresh)
-        data['access'] = str(refresh.access_token)
+        data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }
         update_last_login(None, user)
         return data
 
@@ -89,7 +95,10 @@ class LoginSerializer(serializers.Serializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(write_only=True, required=True)
+    username = serializers.CharField(
+        write_only=True, required=True,
+        validators=[UniqueValidator(queryset=User.objects.all(), message="This username is already taken.")]
+    )
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
 
@@ -112,21 +121,22 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         interests = validated_data.pop('interest_list', [])
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            password=validated_data['password'],
-            first_name=validated_data.get('first_name'),
-            last_name=validated_data.get('last_name', ''),
-            birth_date=validated_data.get('birth_date'),
-            profile_picture=validated_data.get('profile_picture'),
-        )
-        for interest in interests:
-            tag, _ = Tag.objects.get_or_create(name=interest)
-            user.interests.add(tag)
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                password=validated_data['password'],
+                first_name=validated_data.get('first_name'),
+                last_name=validated_data.get('last_name', ''),
+                birth_date=validated_data.get('birth_date'),
+                profile_picture=validated_data.get('profile_picture'),
+            )
+            for interest in interests:
+                tag, _ = Tag.objects.get_or_create(name=interest)
+                user.interests.add(tag)
 
-        refresh = RefreshToken.for_user(user)
-        user.refresh = str(refresh)
-        user.access = str(refresh.access_token)
+            refresh = RefreshToken.for_user(user)
+            user.refresh = str(refresh)
+            user.access = str(refresh.access_token)
         return user
 
     def to_representation(self, instance):
@@ -150,18 +160,21 @@ class UsernameCheckSerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         username = instance.get('username', None)
-        suffixes = [
-            '123', 'xyz', '_best', '_official', '2024', '_pro', '_master',
-            '_guru', '_star', '_world', 'the_real', 'real_', '_official_',
-            '_vibes', 'live', '_online', '_daily', '_hq', '_life', '_blog',
-            'tv', '_channel', '_media', '_news', '_hub', '_spot', '_zone'
-        ]
-
-        random_suffixes = sample(suffixes, k=5)
-        suggestions = list(map(lambda x: f"{username}{x}", random_suffixes))
-        available = not User.objects.filter(username=username).exists()
-        instance['available'] = available
-        instance['suggestions'] = suggestions if not available else None
+        if username:
+            suffixes = [
+                '123', 'xyz', '_best', '_official', '2024', '_pro', '_master',
+                '_guru', '_star', '_world', 'the_real', 'real_', '_official_',
+                '_vibes', 'live', '_online', '_daily', '_hq', '_life', '_blog',
+                'tv', '_channel', '_media', '_news', '_hub', '_spot', '_zone'
+            ]
+            available = not User.objects.filter(username=username).exists()
+            instance['available'] = available
+            if not available:
+                random_suffixes = sample(suffixes, k=5)
+                suggestions = [f"{username}{suffix}" for suffix in random_suffixes]
+                instance['suggestions'] = suggestions
+            else:
+                instance['suggestions'] = None
         return super().to_representation(instance)
 
 
@@ -200,9 +213,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if attrs['new_password'] != attrs['new_password2']:
-            raise serializers.ValidationError(
-                {'new_password': 'Password fields did not match'}
-            )
+            raise serializers.ValidationError({'new_password': 'Password fields did not match'})
         return attrs
     
     def create(self, validated_data):

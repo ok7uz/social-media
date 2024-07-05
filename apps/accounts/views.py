@@ -146,8 +146,8 @@ class UserProfileAPIView(APIView):
         tags=['User'],
         description='Get profile info'
     )
-    def get(self, request, username=None):
-        user = get_object_or_404(User, username=username) if username else request.user
+    def get(self, request, username):
+        user = get_object_or_404(User, username=username)
         serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)
 
@@ -157,12 +157,12 @@ class FollowAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
-        request=FollowSerializer,
-        responses={200: serializer_class},
+        request=None,
+        responses={200: None},
         tags=['Follow'],
         description='Follow user'
     )
-    def post(self, request, username=None):
+    def post(self, request, username):
         user = get_object_or_404(User, username=username)
         data = {
             'follower': request.user.id,
@@ -184,7 +184,7 @@ class UserFollowersAPIView(APIView):
         tags=['Follow'],
         description='Get followers'
     )
-    def get(self, request, username=None):
+    def get(self, request, username):
         user = get_object_or_404(User, username=username)
         followers = User.objects.filter(following__following=user)
         serializer = UserListSerializer(followers, many=True, context={'request': request})
@@ -200,7 +200,7 @@ class UserFollowingAPIView(APIView):
         tags=['Follow'],
         description='Get following'
     )
-    def get(self, request, username=None):
+    def get(self, request, username):
         user = get_object_or_404(User, username=username)
         following = User.objects.filter(followers__follower=user)
         serializer = UserListSerializer(following, many=True, context={'request': request})
