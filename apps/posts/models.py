@@ -1,9 +1,6 @@
-import uuid
-
 from django.db import models
 
 from apps.accounts.models import BaseModel, User
-from apps.posts.utils import generate_id_for
 
 
 class Tag(BaseModel):

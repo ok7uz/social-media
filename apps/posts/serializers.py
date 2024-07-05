@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.accounts.serializers import UserListSerializer
 from apps.posts.models import Post, Like, SavedPost, Media, Tag
+from apps.posts.utils import TimestampField
 
 
 class MediaSerializer(serializers.ModelSerializer):
@@ -25,12 +26,14 @@ class PostSerializer(serializers.ModelSerializer):
     media = MediaSerializer(many=True, required=True)
     has_liked = serializers.SerializerMethodField()
     has_saved = serializers.SerializerMethodField()
+    created_at: int = TimestampField(read_only=True)
+    updated_at: int = TimestampField(read_only=True)
 
     class Meta:
         model = Post
         fields = (
-            'id', 'user', 'caption', 'media', 'tag_list', 'tags', 'comment_count',
-            'like_count', 'has_liked', 'has_saved', 'created_at', 'updated_at'
+            'id', 'user', 'caption', 'comment_count',
+            'like_count', 'has_liked', 'has_saved', 'created_at', 'updated_at', 'media', 'tag_list', 'tags',
         )
 
     def get_has_liked(self, obj) -> bool:
@@ -63,6 +66,8 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class PostWithoutUserSerializer(PostSerializer):
+    created_at = TimestampField(read_only=True)
+    updated_at = TimestampField(read_only=True)
 
     class Meta:
         model = Post

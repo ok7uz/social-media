@@ -37,6 +37,9 @@ class User(AbstractUser, BaseModel):
         ordering = ('-created_at',)
         verbose_name = 'user'
         verbose_name_plural = 'users'
+        indexes = [
+            models.Index(fields=['username']),
+        ]
 
     @property
     def post_count(self) -> int:

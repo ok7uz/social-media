@@ -1,3 +1,7 @@
-def generate_id_for(model) -> int:
-    return 10 ** 9 + 1 if not model.objects.exists() else model.objects.latest('id').id + 1
+from rest_framework import serializers
 
+
+class TimestampField(serializers.IntegerField):
+
+    def to_representation(self, value) -> int:
+        return int(value.timestamp())

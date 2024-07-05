@@ -6,6 +6,8 @@ urlpatterns = [
     path('login/', LoginAPIView.as_view(), name='login'),
     path('register/', RegisterAPIView.as_view(), name='register'),
     path('change-password/', ChangePasswordAPIView.as_view(), name='change-password'),
+    path('check-username/', UsernameCheckAPIView.as_view(), name='check-username'),
+    path('check-password/', PasswordCheckAPIView.as_view(), name='check-password'),
 
     path('profile/', ProfileAPIView.as_view(), name='profile'),
     path('user/<str:username>/', UserProfileAPIView.as_view(), name='user-detail'),

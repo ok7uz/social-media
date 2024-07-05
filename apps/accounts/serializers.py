@@ -1,6 +1,8 @@
+from random import sample
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
 from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
@@ -9,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, Token
 
 from apps.posts.models import Tag
 from .models import User, Follow
+from ..posts.utils import TimestampField
 
 
 class InterestSerializer(serializers.ModelSerializer):
@@ -21,12 +24,13 @@ class InterestSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     interests = InterestSerializer(many=True, read_only=True)
+    is_following = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'first_name', 'last_name', 'bio', 'birth_date', 'age', 'profile_picture',
-            'cover_image', 'post_count', 'follower_count', 'following_count', 'interest_list', 'interests',
+            'id', 'username', 'first_name', 'last_name', 'bio', 'birth_date', 'age', 'profile_picture', 'cover_image',
+            'post_count', 'is_following', 'follower_count', 'following_count', 'interest_list', 'interests',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -35,6 +39,12 @@ class UserSerializer(serializers.ModelSerializer):
         if request and request.method == 'PUT':
             for field in self.fields.values():
                 field.required = False
+
+    def get_is_following(self, obj) -> bool:
+        request = self.context.get('request', None)
+        if request and request.user.is_authenticated:
+            return Follow.objects.filter(follower=request.user, following=obj).exists()
+        return False
                 
     def update(self, instance, validated_data):
         interests = validated_data.pop('interest_list', None)
@@ -133,6 +143,45 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class UsernameCheckSerializer(serializers.Serializer):
+    username = serializers.CharField(write_only=True, required=True)
+    available = serializers.BooleanField(read_only=True)
+    suggestions = serializers.ListSerializer(child=serializers.CharField(), read_only=True)
+    
+    def to_representation(self, instance):
+        username = instance.get('username', None)
+        suffixes = [
+            '123', 'xyz', '_best', '_official', '2024', '_pro', '_master',
+            '_guru', '_star', '_world', 'the_real', 'real_', '_official_',
+            '_vibes', 'live', '_online', '_daily', '_hq', '_life', '_blog',
+            'tv', '_channel', '_media', '_news', '_hub', '_spot', '_zone'
+        ]
+
+        random_suffixes = sample(suffixes, k=5)
+        suggestions = list(map(lambda x: f"{username}{x}", random_suffixes))
+        available = not User.objects.filter(username=username).exists()
+        instance['available'] = available
+        instance['suggestions'] = suggestions if not available else None
+        return super().to_representation(instance)
+
+
+class PasswordCheckSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, required=True)
+    is_valid = serializers.BooleanField(read_only=True)
+    errors = serializers.ListSerializer(child=serializers.CharField(), read_only=True)
+
+    def to_representation(self, instance):
+        password = instance.get('password', None)
+        try:
+            validate_password(password)
+            instance['is_valid'] = True
+            instance['errors'] = None
+        except ValidationError as e:
+            instance['is_valid'] = False
+            instance['errors'] = list(e.messages)
+        return super().to_representation(instance)
+
+
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
@@ -164,6 +213,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
+    created_at = TimestampField(read_only=True)
 
     class Meta:
         model = Follow

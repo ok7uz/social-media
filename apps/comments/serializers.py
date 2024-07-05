@@ -2,10 +2,13 @@ from rest_framework import serializers
 
 from apps.accounts.serializers import UserListSerializer
 from apps.comments.models import Comment
+from apps.posts.utils import TimestampField
 
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserListSerializer(read_only=True)
+    created_at = TimestampField(read_only=True)
+    updated_at = TimestampField(read_only=True)
 
     class Meta:
         model = Comment

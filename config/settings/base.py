@@ -17,8 +17,7 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'drf_spectacular',
-    'corsheaders',
+    'drf_spectacular'
 ]
 
 INSTALLED_APPS = [
@@ -86,7 +85,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -123,5 +122,3 @@ SPECTACULAR_SETTINGS = {
         'email': 'komronbekobloev@gmail.com',
     },
 }
-
-CORS_ALLOW_ALL_ORIGINS = True

@@ -41,11 +41,42 @@ class RegisterAPIView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
             user_serializer = self.serializer_class(serializer.instance, context={'request': request})
-            return Response(user_serializer.data, status=201)
+            return Response(user_serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=400)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UsernameCheckAPIView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = UsernameCheckSerializer
+
+    @extend_schema(
+        request=serializer_class,
+        responses={200: serializer_class},
+        tags=['Auth'],
+        description='Check username availability'
+    )
+    def get(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PasswordCheckAPIView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = PasswordCheckSerializer
+
+    @extend_schema(
+        request=serializer_class,
+        responses={200: serializer_class},
+        tags=['Auth'],
+        description='Check password validity'
+    )
+    def get(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ChangePasswordAPIView(APIView):
@@ -54,7 +85,7 @@ class ChangePasswordAPIView(APIView):
 
     @extend_schema(
         request=ChangePasswordSerializer,
-        responses={200: 'Password successfully updated.'},
+        responses={200: None},
         tags=['Auth'],
         description='Change user password'
     )
