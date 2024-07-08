@@ -1,3 +1,4 @@
+
 from django.db import models
 
 from apps.accounts.models import BaseModel, User
@@ -33,3 +34,4 @@ class ContentPlan(BaseModel):
 
     def __str__(self):
         return self.name
+

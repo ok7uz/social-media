@@ -54,3 +54,4 @@ class ContentPlanDetailAPIView(APIView):
         plan = get_object_or_404(ContentPlan, id=plan_id)
         plan.delete()
         return Response({'detail': 'Successfully deleted'}, status=status.HTTP_204_NO_CONTENT)
+

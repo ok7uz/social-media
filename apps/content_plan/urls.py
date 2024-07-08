@@ -6,3 +6,4 @@ urlpatterns = [
     path('content-plans',ContentPlanListAPIView.as_view()),
     path('content-plans/<int:plan_id>', ContentPlanDetailAPIView.as_view()),
 ]
+
