@@ -9,7 +9,8 @@ SECRET_KEY = config('SECRET_KEY')
 
 LOCAL_APPS = [
     'apps.accounts.apps.AccountsConfig',
-    'apps.posts.apps.PostsConfig',
+    'apps.content.apps.ContentConfig',
+    'apps.content_plan.apps.ContentPlanConfig',
     'apps.comments.apps.CommentsConfig'
 ]
 
@@ -93,6 +94,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
+
+OPENAI_API_KEY = config('OPENAI_API_KEY')
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',

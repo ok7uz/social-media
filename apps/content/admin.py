@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from apps.posts.models import *
+from apps.content.models import *
 
 
 @admin.register(Post)
@@ -27,11 +27,6 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(SavedPost)
 class SavedPostAdmin(admin.ModelAdmin):
     ist_display = ('post', 'user', 'created_at')
-        
-
-@admin.register(Media)
-class MediaAdmin(admin.ModelAdmin):
-    list_display = ('post', 'image', 'video')
 
 
 @admin.register(Like)

@@ -9,9 +9,9 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import PasswordField
 from rest_framework_simplejwt.tokens import RefreshToken, Token
 
-from apps.posts.models import Tag
+from apps.content.models import Tag
 from .models import User, Follow
-from ..posts.utils import TimestampField
+from ..content.utils import TimestampField
 
 
 class InterestSerializer(serializers.ModelSerializer):
@@ -32,13 +32,6 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'username', 'first_name', 'last_name', 'bio', 'birth_date', 'age', 'profile_picture', 'cover_image',
             'post_count', 'is_following', 'follower_count', 'following_count', 'interest_list', 'interests',
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        request = self.context.get('request')
-        if request and request.method == 'PUT':
-            for field in self.fields.values():
-                field.required = False
 
     def get_is_following(self, obj) -> bool:
         request = self.context.get('request', None)
