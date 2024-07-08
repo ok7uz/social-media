@@ -9,11 +9,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 LOCAL_APPS = [
     'apps.accounts.apps.AccountsConfig',
-<<<<<<< HEAD
     'apps.content.apps.ContentConfig',
-=======
-    'apps.posts.apps.PostsConfig',
->>>>>>> 44d703b (OpenAPI 3.0 -> 3.1)
     'apps.content_plan.apps.ContentPlanConfig',
     'apps.comments.apps.CommentsConfig'
 ]
