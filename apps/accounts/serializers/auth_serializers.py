@@ -1,5 +1,4 @@
 from random import sample
-from django.db import transaction
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
 from django.contrib.auth.password_validation import validate_password
@@ -12,57 +11,12 @@ from rest_framework_simplejwt.serializers import PasswordField
 from rest_framework_simplejwt.tokens import RefreshToken, Token
 
 from apps.content.models import Tag
-from .models import User, Follow
-from ..content.utils import TimestampField
-
-
-class InterestSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Tag
-        fields = ('id', 'name')
-
-
-class UserSerializer(serializers.ModelSerializer):
-    interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
-    interests = InterestSerializer(many=True, read_only=True)
-    is_following = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = [
-            'id', 'username', 'first_name', 'last_name', 'bio', 'birth_date', 'age', 'profile_picture', 'cover_image',
-            'post_count', 'is_following', 'follower_count', 'following_count', 'interest_list', 'interests',
-        ]
-
-    def get_is_following(self, obj) -> bool:
-        request = self.context.get('request', None)
-        if request and request.user.is_authenticated:
-            return Follow.objects.filter(follower=request.user, following=obj).exists()
-        return False
-
-    def update(self, instance, validated_data):
-        interests = validated_data.pop('interest_list', None)
-        super().update(instance, validated_data)
-        if interests:
-            instance.interests.clear()
-            for interest in interests:
-                tag, _ = Tag.objects.get_or_create(name=interest)
-                instance.interests.add(tag)
-        return instance
-
-
-class UserListSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'profile_picture', 'cover_image')
+from apps.accounts.models import User
 
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(write_only=True)
     password = PasswordField(write_only=True)
-
     refresh = serializers.CharField(read_only=True)
     access = serializers.CharField(read_only=True)
 
@@ -116,7 +70,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         interests = validated_data.pop('interest_list', [])
         user = User(
             username=validated_data['username'],
-            password=validated_data['password'],
             first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name', ''),
             birth_date=validated_data.get('birth_date'),
@@ -215,22 +168,3 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(validated_data['new_password'])
         user.save()
         return user
-
-
-class FollowSerializer(serializers.ModelSerializer):
-    created_at = TimestampField(read_only=True)
-
-    class Meta:
-        model = Follow
-        fields = ['id', 'follower', 'following', 'created_at']
-
-    def create(self, validated_data):
-        follow, _ = Follow.objects.get_or_create(**validated_data)
-        return follow
-
-    def validate(self, attrs):
-        if attrs['follower'] == attrs['following']:
-            raise serializers.ValidationError('You cannot follow yourself')
-        return attrs
-
-
