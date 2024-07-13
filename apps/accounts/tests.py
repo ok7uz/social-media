@@ -53,6 +53,8 @@ class AccountsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(User.objects.get().username, self.user_data['username'])
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
 
     def test_login_user(self):
         self.register_user(self.user_data)
@@ -101,4 +103,3 @@ class AccountsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['username'], self.user2_data['username'])
-

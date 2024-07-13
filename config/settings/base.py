@@ -118,11 +118,14 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Social Media API',
     'DESCRIPTION': 'Social Media',
     'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
+    'GENERATE_EXAMPLES': False,
     'OAS_VERSION': '3.1.0',
     'CONTACT': {
         'name': 'Komronbek Obloev',
         'url': 'https://github.com/ok7uz',
         'email': 'komronbekobloev@gmail.com',
+    },
+    'SWAGGER_UI_SETTINGS': {
+        'defaultModelRendering': 'model',
     },
 }

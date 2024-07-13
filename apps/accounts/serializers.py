@@ -82,7 +82,6 @@ class LoginSerializer(serializers.Serializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(write_only=True, required=True)
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
 
@@ -105,7 +104,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         interests = validated_data.pop('interest_list', [])
-        user = User.objects.create_user(
+        user = User(
             username=validated_data['username'],
             password=validated_data['password'],
             first_name=validated_data.get('first_name'),
@@ -113,6 +112,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             birth_date=validated_data.get('birth_date'),
             profile_picture=validated_data.get('profile_picture'),
         )
+        user.set_password(validated_data['password'])
+        user.save()
         for interest in interests:
             tag, _ = Tag.objects.get_or_create(name=interest)
             user.interests.add(tag)
