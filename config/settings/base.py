@@ -9,7 +9,8 @@ SECRET_KEY = config('SECRET_KEY')
 
 LOCAL_APPS = [
     'apps.accounts.apps.AccountsConfig',
-    'apps.posts.apps.PostsConfig',
+    'apps.content.apps.ContentConfig',
+    'apps.content_plan.apps.ContentPlanConfig',
     'apps.comments.apps.CommentsConfig'
 ]
 
@@ -94,6 +95,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
 
+OPENAI_API_KEY = config('OPENAI_API_KEY')
+
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': (
@@ -115,10 +118,14 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Social Media API',
     'DESCRIPTION': 'Social Media',
     'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
+    'GENERATE_EXAMPLES': False,
+    'OAS_VERSION': '3.1.0',
     'CONTACT': {
         'name': 'Komronbek Obloev',
         'url': 'https://github.com/ok7uz',
         'email': 'komronbekobloev@gmail.com',
+    },
+    'SWAGGER_UI_SETTINGS': {
+        'defaultModelRendering': 'model',
     },
 }

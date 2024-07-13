@@ -6,7 +6,7 @@ from apps.accounts.models import BaseModel, User
 class Tag(BaseModel):
     name = models.CharField(max_length=255, unique=True)
     
-    start_id = 10 ** 3 + 1
+    start_id = 10 ** 6 + 1
 
     class Meta:
         db_table = 'post_tags'
@@ -21,8 +21,9 @@ class Tag(BaseModel):
 class Post(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts', db_index=True)
     caption = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='posts/', null=True, blank=True)
+    media = models.FileField(upload_to='posts/')
     tags = models.ManyToManyField(Tag, related_name='posts', db_index=True)
+    tagged_users = models.ManyToManyField(User, related_name='tagged_posts', db_index=True)
 
     class Meta:
         db_table = 'posts'
@@ -46,21 +47,6 @@ class Post(BaseModel):
 
     def __str__(self):
         return self.caption
-
-        
-class Media(BaseModel):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='media', db_index=True)
-    image = models.ImageField(upload_to='media-files/', null=True, blank=True)
-    video = models.FileField(upload_to='media-files/', null=True, blank=True)
-    
-    class Meta:
-        db_table = 'post_media'
-        ordering = ('id',)
-        verbose_name = 'post media'
-        verbose_name_plural = 'post media'
-
-    def __str__(self):
-        return f'{self.post.caption}\'s media'
 
 
 class SavedPost(BaseModel):

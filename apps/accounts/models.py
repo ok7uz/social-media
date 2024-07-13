@@ -28,7 +28,7 @@ class User(AbstractUser, BaseModel):
     birth_date = models.DateField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
     cover_image = models.ImageField(upload_to='covers/', null=True, blank=True)
-    interests = models.ManyToManyField('posts.Tag', related_name='users', blank=True, db_index=True)
+    interests = models.ManyToManyField('content.Tag', related_name='users', blank=True, db_index=True)
     
     start_id = 10 ** 6 + 1
 

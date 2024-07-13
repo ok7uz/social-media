@@ -11,17 +11,17 @@ from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import PasswordField
 from rest_framework_simplejwt.tokens import RefreshToken, Token
 
-from apps.posts.models import Tag
+from apps.content.models import Tag
 from .models import User, Follow
-from ..posts.utils import TimestampField
+from ..content.utils import TimestampField
 
 
 class InterestSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Tag
         fields = ('id', 'name')
-        
+
 
 class UserSerializer(serializers.ModelSerializer):
     interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
@@ -35,19 +35,12 @@ class UserSerializer(serializers.ModelSerializer):
             'post_count', 'is_following', 'follower_count', 'following_count', 'interest_list', 'interests',
         ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        request = self.context.get('request')
-        if request and request.method == 'PUT':
-            for field in self.fields.values():
-                field.required = False
-
     def get_is_following(self, obj) -> bool:
         request = self.context.get('request', None)
         if request and request.user.is_authenticated:
             return Follow.objects.filter(follower=request.user, following=obj).exists()
         return False
-                
+
     def update(self, instance, validated_data):
         interests = validated_data.pop('interest_list', None)
         super().update(instance, validated_data)
@@ -121,22 +114,23 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         interests = validated_data.pop('interest_list', [])
-        with transaction.atomic():
-            user = User.objects.create_user(
-                username=validated_data['username'],
-                password=validated_data['password'],
-                first_name=validated_data.get('first_name'),
-                last_name=validated_data.get('last_name', ''),
-                birth_date=validated_data.get('birth_date'),
-                profile_picture=validated_data.get('profile_picture'),
-            )
-            for interest in interests:
-                tag, _ = Tag.objects.get_or_create(name=interest)
-                user.interests.add(tag)
+        user = User(
+            username=validated_data['username'],
+            password=validated_data['password'],
+            first_name=validated_data.get('first_name'),
+            last_name=validated_data.get('last_name', ''),
+            birth_date=validated_data.get('birth_date'),
+            profile_picture=validated_data.get('profile_picture'),
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        for interest in interests:
+            tag, _ = Tag.objects.get_or_create(name=interest)
+            user.interests.add(tag)
 
-            refresh = RefreshToken.for_user(user)
-            user.refresh = str(refresh)
-            user.access = str(refresh.access_token)
+        refresh = RefreshToken.for_user(user)
+        user.refresh = str(refresh)
+        user.access = str(refresh.access_token)
         return user
 
     def to_representation(self, instance):
@@ -157,7 +151,7 @@ class UsernameCheckSerializer(serializers.Serializer):
     username = serializers.CharField(write_only=True, required=True)
     available = serializers.BooleanField(read_only=True)
     suggestions = serializers.ListSerializer(child=serializers.CharField(), read_only=True)
-    
+
     def to_representation(self, instance):
         username = instance.get('username', None)
         if username:
@@ -215,7 +209,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         if attrs['new_password'] != attrs['new_password2']:
             raise serializers.ValidationError({'new_password': 'Password fields did not match'})
         return attrs
-    
+
     def create(self, validated_data):
         user = self.context['request'].user
         user.set_password(validated_data['new_password'])
@@ -239,4 +233,4 @@ class FollowSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('You cannot follow yourself')
         return attrs
 
-    
+

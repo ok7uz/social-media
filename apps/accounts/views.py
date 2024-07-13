@@ -94,7 +94,6 @@ class ChangePasswordAPIView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Password successfully updated."}, status=status.HTTP_200_OK)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -120,7 +119,7 @@ class ProfileAPIView(APIView):
     )
     def put(self, request):
         user = request.user
-        serializer = UserSerializer(user, data=request.data, context={'request': request})
+        serializer = UserSerializer(user, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

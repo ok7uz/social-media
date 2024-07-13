@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import User
-from apps.posts.models import Post, Like, SavedPost
-from apps.posts.serializers import PostSerializer, PostWithoutUserSerializer
+from apps.content.models import Post, Like, SavedPost, Tag
+from apps.content.serializers import PostSerializer, PostWithoutUserSerializer, TagSerializer
 
 
 class PostAPIView(APIView):
@@ -170,4 +170,19 @@ class DiscoverPostAPIView(APIView):
         user = request.user
         discover_posts = Post.objects.filter(tags__in=user.interests.all())
         serializer = PostSerializer(discover_posts, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class TagListAPIView(APIView):
+    serialize_class = TagSerializer
+    permission_classes = (AllowAny,)
+
+    @extend_schema(
+        responses={200: serialize_class(many=True)},
+        tags=['Tag'],
+        description='Get all tags'
+    )
+    def get(self, request):
+        tags = Tag.objects.all()
+        serializer = self.serialize_class(tags, many=True, context={'request': request})
         return Response(serializer.data)

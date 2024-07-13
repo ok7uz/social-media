@@ -1,6 +1,6 @@
 from django.urls import path
 
-from apps.posts.views import *
+from apps.content.views import *
 
 
 urlpatterns = [
@@ -11,4 +11,5 @@ urlpatterns = [
     path('posts/<int:post_id>/like/', LikeAPIView.as_view(), name='post-like'),
     path('posts/<int:post_id>/save/', SavePostAPIView.as_view(), name='post-save'),
     path('user/<str:username>/posts/', UserPostAPIView.as_view(), name='user-posts'),
+    path('tags', TagListAPIView.as_view(), name='tag-list'),
 ]

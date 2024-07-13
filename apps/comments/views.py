@@ -7,7 +7,7 @@ from drf_spectacular.utils import extend_schema
 
 from .serializers import CommentSerializer
 from apps.comments.models import Comment
-from apps.posts.models import Post
+from apps.content.models import Post
 
 
 class CommentAPIView(APIView):
