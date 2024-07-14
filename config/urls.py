@@ -5,9 +5,9 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
-    path('api/schema', SpectacularAPIView.as_view(), name='schema'),
-    path('api/swagger', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
-    path('api/redoc', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
     path('admin/', admin.site.urls),
 
@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/', include('apps.content.urls')),
     path('api/', include('apps.content_plan.urls')),
     path('api/', include('apps.comments.urls')),
+    path('api/', include('apps.chat.urls')),
 ]
 
 if settings.DEBUG:

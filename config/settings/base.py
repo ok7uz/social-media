@@ -11,7 +11,8 @@ LOCAL_APPS = [
     'apps.accounts.apps.AccountsConfig',
     'apps.content.apps.ContentConfig',
     'apps.content_plan.apps.ContentPlanConfig',
-    'apps.comments.apps.CommentsConfig'
+    'apps.comments.apps.CommentsConfig',
+    'apps.chat.apps.ChatConfig',
 ]
 
 THIRD_PARTY_APPS = [
@@ -22,6 +23,7 @@ THIRD_PARTY_APPS = [
 ]
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.contenttypes',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -61,6 +63,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -127,5 +130,11 @@ SPECTACULAR_SETTINGS = {
     },
     'SWAGGER_UI_SETTINGS': {
         'defaultModelRendering': 'model',
+    },
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
