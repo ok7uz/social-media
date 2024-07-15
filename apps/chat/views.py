@@ -19,9 +19,20 @@ class ChatView(APIView):
         description='Get all chats'
     )
     def get(self, request):
-        chats = Chat.objects.filter(participants=request.user)
+        chats = Chat.objects.filter(participants=request.user).prefetch_related('participants')
         serializer = self.serializer_class(chats, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        responses={201: ChatSerializer},
+        tags=['Chat'],
+        description='Create new chat'
+    )
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class ChatDetailView(APIView):
@@ -34,6 +45,9 @@ class ChatDetailView(APIView):
         description='Get chat by id'
     )
     def get(self, request, chat_id):
-        chat = get_object_or_404(Chat, id=chat_id, participants=request.user)
+        chat = get_object_or_404(
+            Chat.objects.prefetch_related('messages', 'participants'),
+            id=chat_id, participants=request.user
+        )
         serializer = self.serializer_class(chat, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)

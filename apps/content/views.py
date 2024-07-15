@@ -22,6 +22,7 @@ class PostAPIView(APIView):
         user = request.user
         followed_users = User.objects.filter(followers__follower=user)
         recommended_posts = Post.objects.filter(user__in=followed_users)
+        recommended_posts = recommended_posts.select_related('user').prefetch_related('tags', 'tagged_users')
         serializer = PostSerializer(recommended_posts, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -49,7 +50,10 @@ class PostDetailAPIView(APIView):
         description='Get post info'
     )
     def get(self, request, post_id):
-        post = get_object_or_404(Post, id=post_id)
+        post = get_object_or_404(
+            Post.objects.select_related('user').prefetch_related('tags', 'tagged_users'),
+            id=post_id
+        )
         serializer = PostSerializer(post, context={'request': request})
         return Response(serializer.data)
 
@@ -60,7 +64,10 @@ class PostDetailAPIView(APIView):
         description='Update post info'
     )
     def put(self, request, post_id):
-        post = get_object_or_404(Post, id=post_id)
+        post = get_object_or_404(
+            Post.objects.select_related('user').prefetch_related('tags', 'tagged_users'),
+            id=post_id
+        )
         serializer = PostSerializer(post, data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
@@ -90,6 +97,7 @@ class UserPostAPIView(APIView):
     def get(self, request, username=None):
         user = get_object_or_404(User, username=username)
         posts = Post.objects.filter(user=user)
+        posts = posts.select_related('user').prefetch_related('tags', 'tagged_users')
         serializer = PostWithoutUserSerializer(posts, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -154,6 +162,7 @@ class SavedPostAPIView(APIView):
     )
     def get(self, request):
         posts = Post.objects.filter(saved__user=request.user)
+        posts = posts.select_related('user').prefetch_related('tags', 'tagged_users')
         serializer = PostSerializer(posts, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -169,6 +178,7 @@ class DiscoverPostAPIView(APIView):
     def get(self, request):
         user = request.user
         discover_posts = Post.objects.filter(tags__in=user.interests.all())
+        discover_posts = discover_posts.select_related('user').prefetch_related('tags', 'tagged_users')
         serializer = PostSerializer(discover_posts, many=True, context={'request': request})
         return Response(serializer.data)
 

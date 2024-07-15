@@ -22,13 +22,13 @@ def get_user(token):
         return AnonymousUser()
 
 
-class TokenAuthMiddleware(BaseMiddleware):
-
-    def __init__(self, inner):
-        self.inner = inner
-        super().__init__(inner)
-
+class JwtAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
-        token = scope['query_string'].decode().split('=')[-1]
-        scope['user'] = await get_user(token)
+        headers = dict(scope['headers'])
+        if b'authorization' in headers:
+            token_name, token_key = headers[b'authorization'].decode().split()
+            if token_name == 'Bearer':
+                scope['user'] = await get_user(token_key)
+        else:
+            scope['user'] = AnonymousUser()
         return await super().__call__(scope, receive, send)

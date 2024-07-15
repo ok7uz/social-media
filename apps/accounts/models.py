@@ -7,8 +7,8 @@ from django.db import models
 
 class BaseModel(models.Model):
     id = models.BigIntegerField(primary_key=True, editable=False, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
     
     start_id = 10 ** 9 + 1
     

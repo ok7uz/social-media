@@ -1,51 +1,68 @@
+import base64
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
-from asgiref.sync import sync_to_async
+import secrets
 
-from apps.chat.models import Chat
+from channels.generic.websocket import AsyncWebsocketConsumer
+from django.core.files.base import ContentFile
+
+from apps.chat.models import Chat, Message
+from apps.chat.serializers import MessageSerializer
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.chat_id = self.scope['url_route']['kwargs']['chat_id']
+        self.chat = await self.get_chat(self.chat_id)
+        self.user = self.scope['user']
 
-        try:
-            self.chat = await sync_to_async(Chat.objects.get)(id=self.chat_id)
-        except Chat.DoesNotExist:
-            await self.close()
-        
-        if not self.scope['user'].is_authenticated:
+        if not self.chat or not self.scope['user'].is_authenticated:
             await self.close()
 
         self.room_group_name = 'chat_%s' % self.chat_id
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
-    # Receive message from WebSocket
-    async def receive(self, text_data):
-        data = json.loads(text_data)
-        message = data['message']
+    async def receive(self, text_data=None, bytes_data=None):
+        text_data_json = json.loads(text_data)
+        message_text = text_data_json.get('message', None)
+        media = text_data_json.get('media', None)
+        media_type = text_data_json.get('media_type', None)
+        if message_text or media:
+            if media:
+                file_str, file_name = media['data'], media['file_name']
+                media = ContentFile(
+                    base64.b64decode(file_str), name=file_name
+                )
+            message = await Message.objects.acreate(
+                chat=self.chat,
+                sender=self.user,
+                content=message_text,
+                media=media,
+                media_type=media_type
+            )
 
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message
-            }
-        )
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message
+                }
+            )
 
     async def chat_message(self, event):
-        message = event['message']
+        message_serializer = MessageSerializer(event['message'], context={'user': self.user})
         await self.send(text_data=json.dumps({
-            'message': message
+            'message': message_serializer.data,
+            'user': self.user.username
         }))
+
+    @staticmethod
+    async def get_chat(chat_id):
+        try:
+            return await Chat.objects.aget(id=chat_id)
+        except Chat.DoesNotExist:
+            return None
