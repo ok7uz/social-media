@@ -38,7 +38,7 @@ class UserFollowersAPIView(APIView):
 
     @extend_schema(
         responses={200: UserListSerializer(many=True)},
-        tags=['Follow'],
+        tags=['User'],
         description='Get followers'
     )
     def get(self, request, username):
@@ -54,7 +54,7 @@ class UserFollowingAPIView(APIView):
 
     @extend_schema(
         responses={200: UserListSerializer(many=True)},
-        tags=['Follow'],
+        tags=['User'],
         description='Get following'
     )
     def get(self, request, username):

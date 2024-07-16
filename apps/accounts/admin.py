@@ -34,4 +34,4 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ('follower', 'following', 'created_at')
+    list_display = ('follower', 'following')

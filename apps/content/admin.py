@@ -26,10 +26,10 @@ class TagAdmin(admin.ModelAdmin):
     
 @admin.register(SavedPost)
 class SavedPostAdmin(admin.ModelAdmin):
-    ist_display = ('post', 'user', 'created_at')
+    ist_display = ('post', 'user')
 
 
 @admin.register(Like)
 class LikeAdmin(admin.ModelAdmin):
-    list_display = ('post', 'user', 'created_at')
+    list_display = ('post', 'user')
 

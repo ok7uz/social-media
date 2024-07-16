@@ -157,7 +157,7 @@ class SavedPostAPIView(APIView):
 
     @extend_schema(
         responses={200: PostSerializer(many=True)},
-        tags=['Post Save'],
+        tags=['Post'],
         description='Get saved posts'
     )
     def get(self, request):

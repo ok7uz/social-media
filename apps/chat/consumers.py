@@ -1,6 +1,5 @@
 import base64
 import json
-import secrets
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.files.base import ContentFile
@@ -10,6 +9,13 @@ from apps.chat.serializers import MessageSerializer
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.chat = None
+        self.user = None
+        self.chat_id = None
+        self.room_group_name = None
 
     async def connect(self):
         self.chat_id = self.scope['url_route']['kwargs']['chat_id']

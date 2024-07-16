@@ -13,6 +13,7 @@ LOCAL_APPS = [
     'apps.content_plan.apps.ContentPlanConfig',
     'apps.comments.apps.CommentsConfig',
     'apps.chat.apps.ChatConfig',
+    'apps.notification.apps.NotificationConfig',
 ]
 
 THIRD_PARTY_APPS = [

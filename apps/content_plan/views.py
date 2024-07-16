@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.models import User
 from apps.content_plan.models import ContentPlan
 from apps.content_plan.serializers import ContentPlanSerializer
 
@@ -15,7 +16,7 @@ class ContentPlanListAPIView(APIView):
     @extend_schema(responses={200: ContentPlanSerializer(many=True)}, tags=['Content Plan'],
                    description='Get content plans')
     def get(self, request):
-        plans = ContentPlan.objects.filter(user=request.user)
+        plans = ContentPlan.objects.filter(user=request.user).select_related('user')
         serializer = ContentPlanSerializer(plans, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -55,3 +56,14 @@ class ContentPlanDetailAPIView(APIView):
         plan.delete()
         return Response({'detail': 'Successfully deleted'}, status=status.HTTP_204_NO_CONTENT)
 
+
+class UserContentPlanListAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(responses={200: ContentPlanSerializer(many=True)}, tags=['User'],
+                   description='Get content plans')
+    def get(self, request, username):
+        user = get_object_or_404(User, username=username)
+        plans = ContentPlan.objects.filter(user=user).select_related('user')
+        serializer = ContentPlanSerializer(plans, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

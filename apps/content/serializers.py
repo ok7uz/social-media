@@ -6,8 +6,9 @@ from apps.accounts.models import User
 from apps.accounts.serializers import UserListSerializer
 from apps.content.models import Post, Like, SavedPost, Tag
 from apps.content.utils import TimestampField
-        
-        
+from apps.content_plan.models import ContentPlan
+
+
 class TagSerializer(serializers.ModelSerializer):
     
     class Meta:
@@ -18,6 +19,7 @@ class TagSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     tag_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     tagged_user_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    content_plan_id = serializers.IntegerField(source='content_plan.id', write_only=True, required=False)
     tags = TagSerializer(many=True, read_only=True)
     user = UserListSerializer(read_only=True)
     has_liked = serializers.SerializerMethodField()
@@ -30,7 +32,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             'id', 'user', 'caption', 'comment_count', 'like_count', 'has_liked', 'tagged_user_list',
-            'has_saved', 'created_at', 'updated_at', 'media', 'tag_list', 'tags', 'tagged_users'
+            'has_saved', 'created_at', 'updated_at', 'media', 'tag_list', 'tags', 'tagged_users', 'content_plan_id'
         )
 
     def get_has_liked(self, obj) -> bool:
@@ -44,6 +46,9 @@ class PostSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags = validated_data.pop('tag_list', [])
         tagged_users = validated_data.pop('tagged_user_list', [])
+        content_plan = validated_data.pop('content_plan', None)
+        if content_plan:
+            validated_data['content_plan'] = get_object_or_404(ContentPlan, id=content_plan['id'])
         post = Post.objects.create(**validated_data)
         for tag_name in tags:
             tag, _ = Tag.objects.get_or_create(name=tag_name)
@@ -54,9 +59,15 @@ class PostSerializer(serializers.ModelSerializer):
         return post
 
     def update(self, instance, validated_data):
-        print(validated_data)
         tags = validated_data.pop('tag_list', None)
         tagged_users = validated_data.pop('tagged_user_list', None)
+
+        # Complete this part
+
+        # content_plan = validated_data.pop('content_plan', instance.content_plan)
+        # content_plan = get_object_or_404(ContentPlan, id=content_plan_id)
+        # validated_data['content_plan'] = content_plan
+
         if tags:
             instance.tags.clear()
             for tag_name in tags:

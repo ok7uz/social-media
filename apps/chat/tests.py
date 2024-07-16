@@ -23,8 +23,14 @@ class ChatTests(TestCase):
         }
 
         self.login_url = reverse('login')
-        self.user1 = User.objects.create_user(username=self.user1_data['username'], password=self.user1_data['password'])
-        self.user2 = User.objects.create_user(username=self.user2_data['username'], password=self.user2_data['password'])
+        self.user1 = User.objects.create_user(
+            username=self.user1_data['username'],
+            password=self.user1_data['password']
+        )
+        self.user2 = User.objects.create_user(
+            username=self.user2_data['username'],
+            password=self.user2_data['password']
+        )
         self.chat = Chat.objects.create(name='Test Chat')
         self.chat.participants.add(self.user1, self.user2)
         self.client = APIClient()

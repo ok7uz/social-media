@@ -5,12 +5,13 @@ from apps.content.utils import TimestampField
 
 
 class ContentPlanSerializer(serializers.ModelSerializer):
+    is_active = serializers.BooleanField(default=True)
     created_at = TimestampField(read_only=True)
 
     class Meta:
         model = ContentPlan
         fields = (
-            'id', 'name', 'price', 'price_type', 'banner', 'status',
+            'id', 'name', 'price', 'price_type', 'banner', 'is_active',
             'description', 'trial_days', 'trial_discount_percent', 'created_at'
         )
 
@@ -19,4 +20,3 @@ class ContentPlanSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         return super().update(instance, validated_data)
-

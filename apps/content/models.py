@@ -1,9 +1,10 @@
 from django.db import models
 
-from apps.accounts.models import BaseModel, User
+from apps.accounts.models import User
+from apps.content_plan.models import ContentPlan
 
 
-class Tag(BaseModel):
+class Tag(models.Model):
     name = models.CharField(max_length=255, unique=True)
     
     start_id = 10 ** 6 + 1
@@ -18,12 +19,14 @@ class Tag(BaseModel):
         return self.name
 
 
-class Post(BaseModel):
+class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts', db_index=True)
     caption = models.CharField(max_length=255)
     media = models.FileField(upload_to='posts/')
+    content_plan = models.ForeignKey(ContentPlan, on_delete=models.SET_NULL, null=True, related_name='posts')
     tags = models.ManyToManyField(Tag, related_name='posts', db_index=True)
     tagged_users = models.ManyToManyField(User, related_name='tagged_posts', db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         db_table = 'posts'
@@ -49,7 +52,7 @@ class Post(BaseModel):
         return self.caption
 
 
-class SavedPost(BaseModel):
+class SavedPost(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='saved', db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved', db_index=True)
 
@@ -62,7 +65,7 @@ class SavedPost(BaseModel):
         return f'{self.user} saved {self.post}'
 
 
-class Like(BaseModel):
+class Like(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes', db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes', db_index=True)
 
