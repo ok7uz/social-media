@@ -2,9 +2,11 @@ from django.db import models
 
 from apps.accounts.models import User
 from apps.content_plan.models import ContentPlan
+from config.utils import CustomAutoField
 
 
 class Tag(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False, start_value=10 ** 6 + 1)
     name = models.CharField(max_length=255, unique=True)
     
     start_id = 10 ** 6 + 1
@@ -20,6 +22,7 @@ class Tag(models.Model):
 
 
 class Post(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts', db_index=True)
     caption = models.CharField(max_length=255)
     media = models.FileField(upload_to='posts/')
@@ -53,6 +56,7 @@ class Post(models.Model):
 
 
 class SavedPost(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='saved', db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved', db_index=True)
 
@@ -66,6 +70,7 @@ class SavedPost(models.Model):
 
 
 class Like(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes', db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes', db_index=True)
 

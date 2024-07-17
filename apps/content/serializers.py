@@ -5,8 +5,8 @@ from rest_framework import serializers
 from apps.accounts.models import User
 from apps.accounts.serializers import UserListSerializer
 from apps.content.models import Post, Like, SavedPost, Tag
-from apps.content.utils import TimestampField
 from apps.content_plan.models import ContentPlan
+from config.utils import TimestampField
 
 
 class TagSerializer(serializers.ModelSerializer):

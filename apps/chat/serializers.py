@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
+from config.utils import TimestampField
 from .models import Chat, Message
 from ..accounts.models import User
 from ..accounts.serializers import UserListSerializer
-from ..content.utils import TimestampField
 
 
 class MessageSerializer(serializers.ModelSerializer):

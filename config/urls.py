@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/', include('apps.content_plan.urls')),
     path('api/', include('apps.comments.urls')),
     path('api/', include('apps.chat.urls')),
+    path('api/', include('apps.notification.urls')),
 ]
 
 if settings.DEBUG:

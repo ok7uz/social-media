@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.accounts.serializers import UserListSerializer
 from apps.comments.models import Comment
-from apps.content.utils import TimestampField
+from config.utils import TimestampField
 
 
 class CommentSerializer(serializers.ModelSerializer):

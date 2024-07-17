@@ -2,6 +2,7 @@
 from django.db import models
 
 from apps.accounts.models import User
+from config.utils import CustomAutoField
 
 
 class PriceType(models.TextChoices):
@@ -11,6 +12,7 @@ class PriceType(models.TextChoices):
 
 
 class ContentPlan(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     name = models.CharField(max_length=256)
     price = models.PositiveIntegerField(null=True)

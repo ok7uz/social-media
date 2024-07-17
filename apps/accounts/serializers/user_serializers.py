@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.content.models import Tag
 from apps.accounts.models import User, Follow
-from apps.content.utils import TimestampField
+from config.utils import TimestampField
 
 
 class InterestSerializer(serializers.ModelSerializer):
@@ -46,7 +46,6 @@ class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'first_name', 'last_name', 'profile_picture', 'cover_image')
-
 
 
 class FollowSerializer(serializers.ModelSerializer):

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.content_plan.models import ContentPlan
-from apps.content.utils import TimestampField
+from config.utils import TimestampField
 
 
 class ContentPlanSerializer(serializers.ModelSerializer):

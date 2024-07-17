@@ -4,8 +4,11 @@ from typing import Optional
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from config.utils import CustomAutoField
+
 
 class User(AbstractUser):
+    id = CustomAutoField(primary_key=True, editable=False, start_value=10 ** 6 + 1)
     bio = models.TextField(blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
@@ -49,6 +52,7 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False)
     follower = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE, db_index=True)
     following = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE, db_index=True)
 

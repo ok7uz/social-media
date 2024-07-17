@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.accounts.models import Follow
-from apps.content.utils import TimestampField
+from config.utils import TimestampField
 
 
 class FollowSerializer(serializers.ModelSerializer):

@@ -1,9 +1,11 @@
 from django.db import models
 
 from apps.accounts.models import User
+from config.utils import CustomAutoField
 
 
 class Chat(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False, start_value=10 ** 6 + 1)
     name = models.CharField(max_length=255, null=True)
     participants = models.ManyToManyField(User, related_name='chats')
     is_group = models.BooleanField(default=False)
@@ -24,6 +26,7 @@ class MediaType(models.TextChoices):
 
 
 class Message(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False)
     chat = models.ForeignKey(Chat, related_name='messages', on_delete=models.CASCADE, db_index=True)
     sender = models.ForeignKey(User, related_name='messages', on_delete=models.SET_NULL, null=True, db_index=True)
     content = models.TextField(null=True)
