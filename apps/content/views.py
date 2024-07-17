@@ -3,10 +3,12 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import status
 
 from apps.accounts.models import User
 from apps.content.models import Post, Like, SavedPost, Tag
 from apps.content.serializers import PostSerializer, PostWithoutUserSerializer, TagSerializer
+from apps.notification.models import Notification
 
 
 class PostAPIView(APIView):
@@ -107,14 +109,16 @@ class LikeAPIView(APIView):
 
     @extend_schema(
         request=None,
-        responses={200: None},
+        responses={201: None},
         tags=['Post Like'],
         description='Like post'
     )
     def post(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
-        Like.objects.get_or_create(user=request.user, post=post)
-        return Response(status=200)
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
+        if created:
+            Notification.object.create(user=post.user, message=f'@{request.user.username} liked your post')
+        return Response(status=status.HTTP_201_CREATED)
 
     @extend_schema(
         responses={200: None},
