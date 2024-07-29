@@ -117,7 +117,7 @@ class LikeAPIView(APIView):
         post = get_object_or_404(Post, id=post_id)
         like, created = Like.objects.get_or_create(user=request.user, post=post)
         if created:
-            Notification.object.create(user=post.user, message=f'@{request.user.username} liked your post')
+            Notification.objects.create(user=post.user, message=f'@{request.user.username} liked your post')
         return Response(status=status.HTTP_201_CREATED)
 
     @extend_schema(

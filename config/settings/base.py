@@ -122,8 +122,8 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Social Media API',
     'DESCRIPTION': 'Social Media',
     'VERSION': '1.0.0',
-    'GENERATE_EXAMPLES': False,
     'OAS_VERSION': '3.1.0',
+    'COMPONENT_SPLIT_REQUEST': True,
     'CONTACT': {
         'name': 'Komronbek Obloev',
         'url': 'https://github.com/ok7uz',

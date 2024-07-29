@@ -1,12 +1,18 @@
+from drf_spectacular.types import OpenApiTypes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
-from apps.accounts.serializers import UserSerializer
+from apps.accounts.filters import UserFilter
+from apps.accounts.serializers import UserSerializer, UserListSerializer
 from apps.accounts.models import User
+
+USER_MANUAL_PARAMETERS = [
+    OpenApiParameter('search', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Searching"),
+]
 
 
 class ProfileAPIView(APIView):
@@ -43,6 +49,24 @@ class ProfileAPIView(APIView):
     def delete(self, request):
         request.user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UserListView(APIView):
+    serializer_class = UserListSerializer
+    permission_classes = (AllowAny,)
+
+    @extend_schema(
+        responses={200: UserListSerializer(many=True)},
+        tags=['User'],
+        description='Get all users',
+        parameters=USER_MANUAL_PARAMETERS
+    )
+    def get(self, request):
+        users = User.objects.all()
+        user_filter = UserFilter(data=request.GET, request=request, queryset=users)
+        filtered_users = user_filter.qs if user_filter.is_valid() else users.none()
+        serializer = self.serializer_class(filtered_users, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 class UserProfileAPIView(APIView):
