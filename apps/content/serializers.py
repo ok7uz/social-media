@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from apps.accounts.models import User
 from apps.accounts.serializers import UserListSerializer
-from apps.content.models import Post, Like, SavedPost, Tag
+from apps.content.models import Content, Like, SavedContent, Tag
 from apps.content_plan.models import ContentPlan
 from config.utils import TimestampField
 
@@ -16,8 +16,8 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 
-class PostSerializer(serializers.ModelSerializer):
-    main_tag_name = serializers.CharField(read_only=True)
+class ContentSerializer(serializers.ModelSerializer):
+    main_tag_name = serializers.CharField(write_only=True)
     tag_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     tagged_user_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     content_plan_id = serializers.IntegerField(source='content_plan.id', write_only=True, required=False)
@@ -31,40 +31,41 @@ class PostSerializer(serializers.ModelSerializer):
     tagged_users = UserListSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Post
+        model = Content
         fields = (
-            'id', 'user', 'caption', 'comment_count', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
-            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'tag_list', 'tags', 'tagged_users',
-            'content_plan_id', 'banner'
+            'id', 'user', 'text', 'comment_count', 'type', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
+            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'tag_list', 'tags',
+            'tagged_users', 'content_plan_id', 'banner'
         )
 
     def get_has_liked(self, obj) -> bool:
         user = self.context.get('request').user
-        return Like.objects.filter(post=obj, user=user).exists()
+        return Like.objects.filter(content=obj, user=user).exists()
 
     def get_has_saved(self, obj) -> bool:
         user = self.context.get('request').user
-        return SavedPost.objects.filter(post=obj, user=user).exists()
+        return SavedContent.objects.filter(content=obj, user=user).exists()
 
     def create(self, validated_data):
         main_tag_name = validated_data.pop('main_tag_name', None)
         tags = validated_data.pop('tag_list', [])
+        print(validated_data.get('tagged_user_list'))
         tagged_users = validated_data.pop('tagged_user_list', [])
         content_plan = validated_data.pop('content_plan', None)
         if content_plan:
             validated_data['content_plan'] = get_object_or_404(ContentPlan, id=content_plan['id'])
-        post = Post.objects.create(**validated_data)
+        content = Content.objects.create(**validated_data)
         if main_tag_name:
             main_tag, = Tag.objects.get_or_create(name=main_tag_name)
-            post.main_tag = main_tag
-        post.save()
+            content.main_tag = main_tag
+        content.save()
         for tag_name in tags:
             tag, _ = Tag.objects.get_or_create(name=tag_name)
-            post.tags.add(tag)
+            content.tags.add(tag)
         for username in tagged_users:
             user = get_object_or_404(User, username=username)
-            post.tagged_users.add(user)
-        return post
+            content.tagged_users.add(user)
+        return content
 
     def update(self, instance, validated_data):
         main_tag_name = validated_data.pop('main_tag_name', None)
@@ -99,20 +100,20 @@ class PostSerializer(serializers.ModelSerializer):
         return value
 
 
-class PostWithoutUserSerializer(PostSerializer):
+class ContentWithoutUserSerializer(ContentSerializer):
     created_at = TimestampField(read_only=True)
     updated_at = TimestampField(read_only=True)
 
     class Meta:
-        model = Post
+        model = Content
         fields = (
-            'id', 'caption', 'media', 'tags', 'like_count',
+            'id', 'text', 'media', 'tags', 'like_count',
             'comment_count', 'created_at', 'updated_at'
         )
             
 
-class SavedPostSerializer(serializers.ModelSerializer):
+class SavedContentSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = SavedPost
-        fields = ('post', 'user')
+        model = SavedContent
+        fields = ('content', 'user')

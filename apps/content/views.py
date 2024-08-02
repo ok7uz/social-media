@@ -1,4 +1,5 @@
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -6,71 +7,78 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from apps.accounts.models import User
-from apps.content.models import Post, Like, SavedPost, Tag
-from apps.content.serializers import PostSerializer, PostWithoutUserSerializer, TagSerializer
+from apps.content.models import Content, Like, SavedContent, Tag
+from apps.content.serializers import TagSerializer, ContentSerializer, ContentWithoutUserSerializer
 from apps.notification.models import Notification
 
 
-class PostAPIView(APIView):
-    serializer_class = PostSerializer
+COURSE_MANUAL_PARAMETERS = [
+    OpenApiParameter('search', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Searching"),
+    OpenApiParameter('type', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Content Type"),
+]
+
+
+class ContentAPIView(APIView):
+    serializer_class = ContentSerializer
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
-        responses={200: PostSerializer(many=True)},
-        tags=['Post'],
-        description='Get recommended posts'
+        responses={200: ContentSerializer(many=True)},
+        tags=['Content'],
+        description='Get recommended contents'
     )
     def get(self, request):
         user = request.user
         followed_users = User.objects.filter(followers__follower=user)
-        recommended_posts = Post.objects.filter(user__in=followed_users)
-        recommended_posts = recommended_posts.select_related('user').prefetch_related('tags', 'tagged_users')
-        serializer = PostSerializer(recommended_posts, many=True, context={'request': request})
+        recommended_contents = Content.objects.filter(user__in=followed_users)
+        recommended_contents = recommended_contents.select_related('user').prefetch_related('tags', 'tagged_users')
+        serializer = ContentSerializer(recommended_contents, many=True, context={'request': request})
         return Response(serializer.data)
 
     @extend_schema(
-        request=PostSerializer,
-        responses={201: PostSerializer},
-        tags=['Post'],
-        description='Create new post'
+        request=ContentSerializer,
+        responses={201: ContentSerializer},
+        tags=['Content'],
+        description='Create new content'
     )
     def post(self, request):
-        serializer = PostSerializer(data=request.data, context={'request': request})
+        serializer = ContentSerializer(data=request.data, context={'request': request})
+        print(request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
 
-class PostDetailAPIView(APIView):
-    serializer_class = PostSerializer
+class ContentDetailAPIView(APIView):
+    serializer_class = ContentSerializer
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
-        responses={200: PostSerializer},
-        tags=['Post'],
-        description='Get post info'
+        responses={200: ContentSerializer},
+        tags=['Content'],
+        description='Get content info'
     )
-    def get(self, request, post_id):
-        post = get_object_or_404(
-            Post.objects.select_related('user').prefetch_related('tags', 'tagged_users'),
-            id=post_id
+    def get(self, request, content_id):
+        content = get_object_or_404(
+            Content.objects.select_related('user').prefetch_related('tags', 'tagged_users'),
+            id=content_id
         )
-        serializer = PostSerializer(post, context={'request': request})
+        serializer = ContentSerializer(content, context={'request': request})
         return Response(serializer.data)
 
     @extend_schema(
-        request=PostSerializer,
-        responses={200: PostSerializer},
-        tags=['Post'],
-        description='Update post info'
+        request=ContentSerializer,
+        responses={200: ContentSerializer},
+        tags=['Content'],
+        description='Update content info'
     )
-    def put(self, request, post_id):
-        post = get_object_or_404(
-            Post.objects.select_related('user').prefetch_related('tags', 'tagged_users'),
-            id=post_id
+    def put(self, request, content_id):
+        content = get_object_or_404(
+            Content.objects.select_related('user').prefetch_related('tags', 'tagged_users'),
+            id=content_id
         )
-        serializer = PostSerializer(post, data=request.data, context={'request': request})
+        serializer = ContentSerializer(content, data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -78,29 +86,29 @@ class PostDetailAPIView(APIView):
 
     @extend_schema(
         responses={204: None},
-        tags=['Post'],
-        description='Delete post'
+        tags=['Content'],
+        description='Delete content'
     )
-    def delete(self, request, post_id):
-        post = get_object_or_404(Post, id=post_id)
-        post.delete()
+    def delete(self, request, content_id):
+        content = get_object_or_404(Content, id=content_id)
+        content.delete()
         return Response(status=204)
 
 
-class UserPostAPIView(APIView):
-    serializer_class = PostSerializer
+class UserContentAPIView(APIView):
+    serializer_class = ContentSerializer
     permission_classes = (AllowAny,)
 
     @extend_schema(
-        responses={200: PostSerializer(many=True)},
+        responses={200: ContentSerializer(many=True)},
         tags=['User'],
-        description='Get all posts for user'
+        description='Get all contents for user'
     )
     def get(self, request, username=None):
         user = get_object_or_404(User, username=username)
-        posts = Post.objects.filter(user=user)
-        posts = posts.select_related('user').prefetch_related('tags', 'tagged_users')
-        serializer = PostWithoutUserSerializer(posts, many=True, context={'request': request})
+        contents = Content.objects.filter(user=user)
+        contents = contents.select_related('user').prefetch_related('tags', 'tagged_users')
+        serializer = ContentWithoutUserSerializer(contents, many=True, context={'request': request})
         return Response(serializer.data)
 
 
@@ -110,80 +118,80 @@ class LikeAPIView(APIView):
     @extend_schema(
         request=None,
         responses={201: None},
-        tags=['Post Like'],
-        description='Like post'
+        tags=['Content Like'],
+        description='Like content'
     )
-    def post(self, request, post_id):
-        post = get_object_or_404(Post, id=post_id)
-        like, created = Like.objects.get_or_create(user=request.user, post=post)
+    def post(self, request, content_id):
+        content = get_object_or_404(Content, id=content_id)
+        like, created = Like.objects.get_or_create(user=request.user, content=content)
         if created:
-            Notification.objects.create(user=post.user, message=f'@{request.user.username} liked your post')
+            Notification.objects.create(user=content.user, message=f'@{request.user.username} liked your content')
         return Response(status=status.HTTP_201_CREATED)
 
     @extend_schema(
         responses={200: None},
-        tags=['Post Like'],
-        description='Unlike post'
+        tags=['Content Like'],
+        description='Unlike content'
     )
-    def delete(self, request, post_id):
-        post = get_object_or_404(Post, id=post_id)
-        Like.objects.filter(user=request.user, post=post).delete()
+    def delete(self, request, content_id):
+        content = get_object_or_404(Content, id=content_id)
+        Like.objects.filter(user=request.user, content=content).delete()
         return Response(status=204)
 
 
-class SavePostAPIView(APIView):
+class SaveContentAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
         request=None,
         responses={200: None},
-        tags=['Post Save'],
-        description='Save post'
+        tags=['Content Save'],
+        description='Save content'
     )
-    def post(self, request, post_id):
-        post = get_object_or_404(Post, id=post_id)
-        SavedPost.objects.get_or_create(user=request.user, post=post)
+    def post(self, request, content_id):
+        content = get_object_or_404(Content, id=content_id)
+        SavedContent.objects.get_or_create(user=request.user, content=content)
         return Response(status=200)
 
     @extend_schema(
         responses={200: None},
-        tags=['Post Save'],
-        description='Unsave post'
+        tags=['Content Save'],
+        description='Unsave content'
     )
-    def delete(self, request, post_id):
-        post = get_object_or_404(Post, id=post_id)
-        SavedPost.objects.filter(user=request.user, post=post).delete()
+    def delete(self, request, content_id):
+        content = get_object_or_404(Content, id=content_id)
+        SavedContent.objects.filter(user=request.user, content=content).delete()
         return Response(status=204)
 
 
-class SavedPostAPIView(APIView):
+class SavedContentAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
-        responses={200: PostSerializer(many=True)},
-        tags=['Post'],
-        description='Get saved posts'
+        responses={200: ContentSerializer(many=True)},
+        tags=['Content'],
+        description='Get saved contents'
     )
     def get(self, request):
-        posts = Post.objects.filter(saved__user=request.user)
-        posts = posts.select_related('user').prefetch_related('tags', 'tagged_users')
-        serializer = PostSerializer(posts, many=True, context={'request': request})
+        contents = Content.objects.filter(saved__user=request.user)
+        contents = contents.select_related('user').prefetch_related('tags', 'tagged_users')
+        serializer = ContentSerializer(contents, many=True, context={'request': request})
         return Response(serializer.data)
 
 
-class DiscoverPostAPIView(APIView):
+class DiscoverContentAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
-        responses={200: PostSerializer(many=True)},
-        tags=['Post'],
-        description='Get discover posts'
+        responses={200: ContentSerializer(many=True)},
+        tags=['Content'],
+        description='Get discover contents'
     )
     def get(self, request):
         user = request.user
-        discover_posts = Post.objects.filter(tags__in=user.interests.all())
-        discover_posts = discover_posts.select_related('user').prefetch_related('tags', 'tagged_users')
-        serializer = PostSerializer(discover_posts, many=True, context={'request': request})
+        discover_contents = Content.objects.filter(tags__in=user.interests.all())
+        discover_contents = discover_contents.select_related('user').prefetch_related('tags', 'tagged_users')
+        serializer = ContentSerializer(discover_contents, many=True, context={'request': request})
         return Response(serializer.data)
 
 

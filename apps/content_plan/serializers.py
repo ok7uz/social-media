@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.content.serializers import PostSerializer
+from apps.content.serializers import ContentSerializer
 from apps.content_plan.models import ContentPlan
 from config.utils import TimestampField
 
@@ -10,13 +10,13 @@ class ContentPlanSerializer(serializers.ModelSerializer):
     created_at = TimestampField(read_only=True)
     subscriber_count = serializers.SerializerMethodField(read_only=True)
     length = serializers.SerializerMethodField(read_only=True)
-    posts = PostSerializer(many=True, read_only=True)
+    contents = ContentSerializer(many=True, read_only=True)
 
     class Meta:
         model = ContentPlan
         fields = (
             'id', 'name', 'price', 'price_type', 'banner', 'is_active', 'description', 'subscriber_count', 'length',
-            'trial_days', 'trial_discount_percent', 'trial_description', 'created_at', 'posts'
+            'trial_days', 'trial_discount_percent', 'trial_description', 'created_at', 'contents'
         )
 
     def get_subscriber_count(self, obj) -> int:

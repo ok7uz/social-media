@@ -7,7 +7,7 @@ from drf_spectacular.utils import extend_schema
 
 from .serializers import CommentSerializer
 from apps.comments.models import Comment
-from apps.content.models import Post
+from apps.content.models import Content
 
 
 class CommentAPIView(APIView):
@@ -16,11 +16,11 @@ class CommentAPIView(APIView):
     @extend_schema(
         responses={200: CommentSerializer},
         tags=['Comment'],
-        description='Get all comments for post'
+        description='Get all comments for content'
     )
-    def get(self, request, post_id):
-        post = get_object_or_404(Post, id=post_id)
-        comments = Comment.objects.filter(post=post)
+    def get(self, request, content_id):
+        content = get_object_or_404(Content, id=content_id)
+        comments = Comment.objects.filter(content=content)
         serializer = CommentSerializer(comments, many=True, context={'request': request})
         return Response(serializer.data)
     
@@ -30,11 +30,11 @@ class CommentAPIView(APIView):
         tags=['Comment'],
         description='Create new comment'
     )
-    def post(self, request, post_id):
-        post = get_object_or_404(Post, id=post_id)
+    def content(self, request, content_id):
+        content = get_object_or_404(Content, id=content_id)
         serializer = CommentSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(user=request.user, post=post)
+            serializer.save(user=request.user, content=content)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 

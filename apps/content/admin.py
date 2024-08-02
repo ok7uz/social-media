@@ -3,9 +3,9 @@ from django.contrib import admin
 from apps.content.models import *
 
 
-@admin.register(Post)
-class PostAdmin(admin.ModelAdmin):
-    list_display = ('caption', 'user', 'tag_names', 'created_at')
+@admin.register(Content)
+class ContentAdmin(admin.ModelAdmin):
+    list_display = ('text', 'user', 'tag_names', 'created_at')
     filter_horizontal = ('tags',)
     readonly_fields = ('tag_names',)
 
@@ -16,20 +16,20 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'post_count')
-    readonly_fields = ('post_count',)
+    list_display = ('name', 'content_count')
+    readonly_fields = ('content_count',)
 
     @staticmethod
-    def post_count(obj):
-        return obj.posts.count()
+    def content_count(obj):
+        return obj.contents.count()
     
     
-@admin.register(SavedPost)
-class SavedPostAdmin(admin.ModelAdmin):
-    ist_display = ('post', 'user')
+@admin.register(SavedContent)
+class SavedContentAdmin(admin.ModelAdmin):
+    ist_display = ('content', 'user')
 
 
 @admin.register(Like)
 class LikeAdmin(admin.ModelAdmin):
-    list_display = ('post', 'user')
+    list_display = ('content', 'user')
 

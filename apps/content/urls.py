@@ -4,12 +4,12 @@ from apps.content.views import *
 
 
 urlpatterns = [
-    path('posts/', PostAPIView.as_view(), name='post-list'),
-    path('discover/', DiscoverPostAPIView.as_view(), name='discover-posts'),
-    path('posts/saved/', SavedPostAPIView.as_view(), name='post-saved'),
-    path('posts/<int:post_id>/', PostDetailAPIView.as_view(), name='post-detail'),
-    path('posts/<int:post_id>/like/', LikeAPIView.as_view(), name='post-like'),
-    path('posts/<int:post_id>/save/', SavePostAPIView.as_view(), name='post-save'),
-    path('user/<str:username>/posts/', UserPostAPIView.as_view(), name='user-posts'),
+    path('contents/', ContentAPIView.as_view(), name='content-list'),
+    path('discover/', DiscoverContentAPIView.as_view(), name='discover-contents'),
+    path('contents/saved/', SavedContentAPIView.as_view(), name='content-saved'),
+    path('contents/<int:content_id>/', ContentDetailAPIView.as_view(), name='content-detail'),
+    path('contents/<int:content_id>/like/', LikeAPIView.as_view(), name='content-like'),
+    path('contents/<int:content_id>/save/', SaveContentAPIView.as_view(), name='content-save'),
+    path('user/<str:username>/contents/', UserContentAPIView.as_view(), name='user-contents'),
     path('tags', TagListAPIView.as_view(), name='tag-list'),
 ]

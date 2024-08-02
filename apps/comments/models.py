@@ -1,16 +1,15 @@
 from django.db import models
 
 from apps.accounts.models import User
-from apps.content.models import Post
+from apps.content.models import Content
 from config.utils import CustomAutoField
 
 
 class Comment(models.Model):
     id = CustomAutoField(primary_key=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments', db_index=True)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments', db_index=True)
-
-    content = models.TextField()
+    content = models.ForeignKey(Content, on_delete=models.CASCADE, related_name='comments', db_index=True)
+    text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
