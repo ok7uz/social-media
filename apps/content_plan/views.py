@@ -7,17 +7,17 @@ from rest_framework.views import APIView
 
 from apps.accounts.models import User
 from apps.content_plan.models import ContentPlan
-from apps.content_plan.serializers import ContentPlanSerializer
+from apps.content_plan.serializers import ContentPlanSerializer, SubscriptionSerializer, ContentPlanListSerializer
 
 
 class ContentPlanListAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    @extend_schema(responses={200: ContentPlanSerializer(many=True)}, tags=['Content Plan'],
+    @extend_schema(responses={200: ContentPlanListSerializer(many=True)}, tags=['Content Plan'],
                    description='Get content plans')
     def get(self, request):
         plans = ContentPlan.objects.filter(user=request.user).select_related('user')
-        serializer = ContentPlanSerializer(plans, many=True, context={'request': request})
+        serializer = ContentPlanListSerializer(plans, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(request=ContentPlanSerializer, responses={201: ContentPlanSerializer}, tags=['Content Plan'],
@@ -58,12 +58,27 @@ class ContentPlanDetailAPIView(APIView):
 
 
 class UserContentPlanListAPIView(APIView):
+    serializer_class = ContentPlanListSerializer
     permission_classes = (IsAuthenticated,)
 
-    @extend_schema(responses={200: ContentPlanSerializer(many=True)}, tags=['User'],
+    @extend_schema(responses={200: ContentPlanListSerializer(many=True)}, tags=['User'],
                    description='Get content plans')
     def get(self, request, username):
         user = get_object_or_404(User, username=username)
         plans = ContentPlan.objects.filter(user=user).select_related('user')
-        serializer = ContentPlanSerializer(plans, many=True, context={'request': request})
+        serializer = ContentPlanListSerializer(plans, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SubscribtionView(APIView):
+    serializer_class = SubscriptionSerializer
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(responses={200: ContentPlanSerializer(many=True)}, tags=['User'],
+                   description='Get subscribed content plans')
+    def post(self, request, plan_id):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(plan_id=plan_id)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

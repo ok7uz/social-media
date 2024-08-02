@@ -27,6 +27,8 @@ class Post(models.Model):
     caption = models.CharField(max_length=255)
     media = models.FileField(upload_to='posts/')
     content_plan = models.ForeignKey(ContentPlan, on_delete=models.SET_NULL, null=True, related_name='posts')
+    banner = models.FileField(upload_to='banners/', null=True)
+    main_tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, null=True, related_name='main_posts')
     tags = models.ManyToManyField(Tag, related_name='posts', db_index=True)
     tagged_users = models.ManyToManyField(User, related_name='tagged_posts', db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)

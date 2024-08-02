@@ -19,6 +19,7 @@ class ContentPlan(models.Model):
     price_type = models.CharField(max_length=10, choices=PriceType, default=PriceType.FREE)
     trial_days = models.PositiveIntegerField(null=True)
     trial_discount_percent = models.PositiveIntegerField(null=True)
+    trial_description = models.TextField(null=True)
     banner = models.ImageField(upload_to='banners/')
     is_active = models.BooleanField(default=True)
     description = models.TextField()
@@ -32,3 +33,16 @@ class ContentPlan(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Subscription(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True, related_name='subscriptions')
+    content_plan = models.ForeignKey(ContentPlan, on_delete=models.CASCADE, related_name='users', db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        db_table = 'subscriptions'
+        verbose_name = 'subscription'
+        verbose_name_plural = 'subscriptions'
+        ordering = ('created_at',)

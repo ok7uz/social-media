@@ -17,9 +17,11 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
+    main_tag_name = serializers.CharField(read_only=True)
     tag_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     tagged_user_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     content_plan_id = serializers.IntegerField(source='content_plan.id', write_only=True, required=False)
+    main_tag = TagSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     user = UserListSerializer(read_only=True)
     has_liked = serializers.SerializerMethodField()
@@ -31,8 +33,9 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = (
-            'id', 'user', 'caption', 'comment_count', 'like_count', 'has_liked', 'tagged_user_list',
-            'has_saved', 'created_at', 'updated_at', 'media', 'tag_list', 'tags', 'tagged_users', 'content_plan_id'
+            'id', 'user', 'caption', 'comment_count', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
+            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'tag_list', 'tags', 'tagged_users',
+            'content_plan_id', 'banner'
         )
 
     def get_has_liked(self, obj) -> bool:
@@ -44,12 +47,17 @@ class PostSerializer(serializers.ModelSerializer):
         return SavedPost.objects.filter(post=obj, user=user).exists()
 
     def create(self, validated_data):
+        main_tag_name = validated_data.pop('main_tag_name', None)
         tags = validated_data.pop('tag_list', [])
         tagged_users = validated_data.pop('tagged_user_list', [])
         content_plan = validated_data.pop('content_plan', None)
         if content_plan:
             validated_data['content_plan'] = get_object_or_404(ContentPlan, id=content_plan['id'])
         post = Post.objects.create(**validated_data)
+        if main_tag_name:
+            main_tag, = Tag.objects.get_or_create(name=main_tag_name)
+            post.main_tag = main_tag
+        post.save()
         for tag_name in tags:
             tag, _ = Tag.objects.get_or_create(name=tag_name)
             post.tags.add(tag)
@@ -59,6 +67,7 @@ class PostSerializer(serializers.ModelSerializer):
         return post
 
     def update(self, instance, validated_data):
+        main_tag_name = validated_data.pop('main_tag_name', None)
         tags = validated_data.pop('tag_list', None)
         tagged_users = validated_data.pop('tagged_user_list', None)
 
@@ -67,7 +76,9 @@ class PostSerializer(serializers.ModelSerializer):
         # content_plan = validated_data.pop('content_plan', instance.content_plan)
         # content_plan = get_object_or_404(ContentPlan, id=content_plan_id)
         # validated_data['content_plan'] = content_plan
-
+        if main_tag_name:
+            main_tag, = Tag.objects.get_or_create(name=main_tag_name)
+            instance.main_tag = main_tag
         if tags:
             instance.tags.clear()
             for tag_name in tags:
@@ -82,11 +93,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_media(value):
-        content_type = value.content_type.split('/')[0]
         max_size = 200 * 1024 * 1024  # 200 MB
-
-        if content_type not in ['image', 'video']:
-            raise ValidationError("Unsupported file type. Allowed types are: jpg, png, mp4.")
         if value.size > max_size:
             raise ValidationError(f"File size must be less than {max_size // (1024 * 1024)} MB.")
         return value
