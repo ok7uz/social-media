@@ -10,7 +10,8 @@ from apps.accounts.serializers import (
     RegisterSerializer,
     UsernameCheckSerializer,
     PasswordCheckSerializer,
-    ChangePasswordSerializer, SocialAuthSerializer
+    ChangePasswordSerializer,
+    SocialAuthSerializer
 )
 
 

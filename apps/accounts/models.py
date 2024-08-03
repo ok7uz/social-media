@@ -27,7 +27,7 @@ class User(AbstractUser):
 
     @property
     def post_count(self) -> int:
-        return self.posts.count()
+        return self.contents.count()
 
     @property
     def follower_count(self) -> int:
