@@ -8,7 +8,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import PasswordField
-from rest_framework_simplejwt.tokens import RefreshToken, Token
+from rest_framework_simplejwt.tokens import RefreshToken
+from social_django.utils import load_strategy, load_backend
 
 from apps.content.models import Tag
 from apps.accounts.models import User
@@ -37,7 +38,7 @@ class LoginSerializer(serializers.Serializer):
         return data
 
     @staticmethod
-    def get_token(user) -> Token:
+    def get_token(user) -> RefreshToken:
         return RefreshToken.for_user(user)
 
 
@@ -81,7 +82,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             tag, _ = Tag.objects.get_or_create(name=interest)
             user.interests.add(tag)
 
-        refresh = RefreshToken.for_user(user)
+        refresh: RefreshToken = RefreshToken.for_user(user)
         user.refresh = str(refresh)
         user.access = str(refresh.access_token)
         return user
@@ -168,3 +169,36 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(validated_data['new_password'])
         user.save()
         return user
+
+
+class SocialAuthSerializer(serializers.Serializer):
+
+    PROVIDERS = [
+        ['google-oauth2', 'Google'],
+        ['facebook', 'Facebook'],
+        ['apple-id', 'Apple'],
+    ]
+    provider = serializers.ChoiceField(choices=PROVIDERS, write_only=True)
+    token = serializers.CharField(write_only=True)
+    refresh = serializers.CharField(read_only=True, min_length=200, max_length=300)
+    access = serializers.CharField(read_only=True, min_length=200, max_length=300)
+
+    def create(self, validated_data):
+        strategy = load_strategy(self.context['request'])
+        backend = load_backend(strategy=strategy, name=validated_data.pop('provider'), redirect_uri=None)
+        token = validated_data.pop('token')
+        user = backend.do_auth(token)
+
+        if user and user.is_active:
+            refresh = self.get_token(user)
+            data = {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token)
+            }
+            update_last_login(None, user)
+            return data
+        return None
+
+    @staticmethod
+    def get_token(user) -> RefreshToken:
+        return RefreshToken.for_user(user)

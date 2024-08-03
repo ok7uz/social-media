@@ -8,6 +8,7 @@ urlpatterns = [
     path('change-password/', ChangePasswordAPIView.as_view(), name='change-password'),
     path('check-username/', UsernameCheckAPIView.as_view(), name='check-username'),
     path('check-password/', PasswordCheckAPIView.as_view(), name='check-password'),
+    path('login/social/', SocialAuthView.as_view(), name='social-login'),
 
     path('profile/', ProfileAPIView.as_view(), name='profile'),
 

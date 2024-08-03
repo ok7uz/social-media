@@ -14,7 +14,7 @@ class ChatView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
-        responses={200: ChatListSerializer},
+        responses={200: ChatListSerializer(many=True)},
         tags=['Chat'],
         description='Get all chats'
     )

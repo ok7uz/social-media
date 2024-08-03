@@ -10,7 +10,7 @@ from apps.accounts.serializers import (
     RegisterSerializer,
     UsernameCheckSerializer,
     PasswordCheckSerializer,
-    ChangePasswordSerializer
+    ChangePasswordSerializer, SocialAuthSerializer
 )
 
 
@@ -100,4 +100,22 @@ class ChangePasswordAPIView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Password successfully updated."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SocialAuthView(APIView):
+    serializer_class = SocialAuthSerializer
+    permission_classes = (AllowAny,)
+
+    @extend_schema(
+        request=SocialAuthSerializer,
+        responses={200: SocialAuthSerializer},
+        tags=['Auth'],
+        description='Login with social provider'
+    )
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
