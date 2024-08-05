@@ -49,7 +49,6 @@ class ContentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         main_tag_name = validated_data.pop('main_tag_name', None)
         tags = validated_data.pop('tag_list', [])
-        print(validated_data.get('tagged_user_list'))
         tagged_users = validated_data.pop('tagged_user_list', [])
         content_plan = validated_data.pop('content_plan', None)
         if content_plan:

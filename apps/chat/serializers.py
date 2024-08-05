@@ -1,10 +1,12 @@
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
+from drf_spectacular.utils import extend_schema_field
 
 from config.utils import TimestampField
 from .models import Chat, Message
-from ..accounts.models import User
-from ..accounts.serializers import UserListSerializer
+from apps.accounts.models import User, Follow
+from apps.accounts.serializers import UserListSerializer
+from apps.content_plan.models import Subscription
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -27,13 +29,22 @@ class ChatSerializer(serializers.ModelSerializer):
 
 
 class ChatListSerializer(serializers.ModelSerializer):
+    TYPE = [
+        ('superhero', 'Superhero'),
+        ('subscriber', 'Subscriber'),
+        ('follower', 'Follower'),
+        ('group', 'Group'),
+    ]
     username = serializers.CharField(write_only=True, help_text='Username of the participant')
+    type = serializers.SerializerMethodField(read_only=True)
+    name = serializers.SerializerMethodField(read_only=True)
+    image = serializers.SerializerMethodField(read_only=True)
     participants = UserListSerializer(many=True, read_only=True)
     created_at = TimestampField(read_only=True)
 
     class Meta:
         model = Chat
-        fields = ['id', 'is_group', 'username', 'participants', 'created_at']
+        fields = ['id', 'is_group', 'username', 'type', 'name', 'image', 'participants', 'created_at']
 
     def create(self, validated_data):
         username = validated_data.pop('username')
@@ -41,3 +52,37 @@ class ChatListSerializer(serializers.ModelSerializer):
         chat = Chat.objects.create(name='testing')
         chat.participants.add(participant_user, self.context['request'].user)
         return chat
+
+    @extend_schema_field(serializers.ChoiceField(choices=TYPE))
+    def get_type(self, obj) -> str:
+        if obj.is_group:
+            return 'group'
+        user = self.context['request'].user
+        participant = obj.participants.exclude(id=user.id).first()
+        if Subscription.objects.filter(user=user, content_plan__user=participant).exists():
+            return 'superhero'
+        elif Subscription.objects.filter(user=participant, content_plan__user=user).exists():
+            return 'subscriber'
+        elif Follow.objects.filter(follower=participant, following=user).exists():
+            return 'follower'
+        return None
+
+    def get_name(self, obj) -> str:
+        if obj.is_group:
+            return obj.name
+        user = self.context['request'].user
+        participant = obj.participants.exclude(id=user.id).first()
+        if participant.last_name:
+            return f'{participant.first_name} {participant.last_name}'
+        return participant.first_name
+
+    @extend_schema_field(serializers.URLField())
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.is_group:
+            return request.build_absolute_uri(obj.image.url)
+        user = self.context['request'].user
+        participant = obj.participants.exclude(id=user.id).first()
+        if participant.profile_picture:
+            return request.build_absolute_uri(participant.profile_picture.url)
+        return None

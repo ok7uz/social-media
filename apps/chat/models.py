@@ -7,6 +7,7 @@ from config.utils import CustomAutoField
 class Chat(models.Model):
     id = CustomAutoField(primary_key=True, editable=False, start_value=10 ** 6 + 1)
     name = models.CharField(max_length=255, null=True)
+    image = models.ImageField(upload_to='chats/images/', null=True)
     participants = models.ManyToManyField(User, related_name='chats')
     is_group = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
