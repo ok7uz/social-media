@@ -43,7 +43,6 @@ class ContentAPIView(APIView):
     )
     def post(self, request):
         serializer = ContentSerializer(data=request.data, context={'request': request})
-        print(request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=201)

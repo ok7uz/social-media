@@ -55,7 +55,7 @@ class ContentSerializer(serializers.ModelSerializer):
             validated_data['content_plan'] = get_object_or_404(ContentPlan, id=content_plan['id'])
         content = Content.objects.create(**validated_data)
         if main_tag_name:
-            main_tag, = Tag.objects.get_or_create(name=main_tag_name)
+            main_tag, _ = Tag.objects.get_or_create(name=main_tag_name)
             content.main_tag = main_tag
         content.save()
         for tag_name in tags:
