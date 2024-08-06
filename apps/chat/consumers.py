@@ -1,11 +1,26 @@
 import base64
 import json
+from urllib.parse import urlunparse
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.files.base import ContentFile
+from django.http import HttpRequest
 
 from apps.chat.models import Chat, Message
 from apps.chat.serializers import MessageSerializer
+
+
+class CustomHttpRequest(HttpRequest):
+    def __init__(self, scope):
+        super().__init__()
+        self.method_scheme = "https" if scope.get('secure') else "http"
+        self._host = dict(scope['headers']).get(b'host').decode()
+
+    def build_absolute_uri(self, location=None):
+        base_url = urlunparse((self.method_scheme, self._host, '', '', '', ''))
+        if location:
+            return base_url + location
+        return base_url
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -60,7 +75,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
 
     async def chat_message(self, event):
-        message_serializer = MessageSerializer(event['message'], context={'user': self.user})
+        message_serializer = MessageSerializer(event['message'], context={'request': CustomHttpRequest(self.scope)})
         await self.send(text_data=json.dumps({
             'message': message_serializer.data,
             'user': self.user.username

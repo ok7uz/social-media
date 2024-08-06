@@ -63,6 +63,8 @@ class UserListView(APIView):
     )
     def get(self, request):
         users = User.objects.all()
+        if request.user.is_authenticated:
+            users = users.exclude(id=request.user.id)
         user_filter = UserFilter(data=request.GET, request=request, queryset=users)
         filtered_users = user_filter.qs if user_filter.is_valid() else users.none()
         serializer = self.serializer_class(filtered_users, many=True, context={'request': request})
