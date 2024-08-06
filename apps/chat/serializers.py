@@ -28,7 +28,9 @@ class ChatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Chat
-        fields = ['id', 'name', 'image', 'owner', 'participants', 'is_group', 'created_at', 'messages']
+        fields = [
+            'id', 'name', 'image', 'owner', 'participants', 'is_group', 'created_at', 'messages'
+        ]
 
     def get_name(self, obj) -> str:
         if obj.is_group:
@@ -60,11 +62,14 @@ class ChatListSerializer(ChatSerializer):
     ]
     username = serializers.CharField(write_only=True, help_text='Username of the participant')
     type = serializers.SerializerMethodField(read_only=True)
+    new_message_count = serializers.SerializerMethodField(read_only=True)
     last_message = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Chat
-        fields = ['id', 'is_group', 'username', 'type', 'name', 'image', 'last_message', 'created_at']
+        fields = [
+            'id', 'is_group', 'username', 'type', 'name', 'image', 'new_message_count',  'last_message', 'created_at'
+        ]
 
     def create(self, validated_data):
         username = validated_data.pop('username')
@@ -92,6 +97,12 @@ class ChatListSerializer(ChatSerializer):
         _last_message = obj.messages.last()
         serializer = MessageSerializer(obj.messages.last(), context=self.context)
         return serializer.data if _last_message else None
+
+    @extend_schema_field(serializers.IntegerField())
+    def get_new_message_count(self, obj):
+        user = self.context['request'].user
+        unread_messages = Message.objects.filter(chat=obj).exclude(read_by__user=user)
+        return unread_messages.count()
 
 
 class CreateGroupSerializer(ChatSerializer):

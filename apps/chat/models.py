@@ -41,3 +41,16 @@ class Message(models.Model):
         verbose_name = 'message'
         verbose_name_plural = 'messages'
         ordering = ('created_at',)
+
+
+class MessageRead(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False)
+    message = models.ForeignKey(Message, related_name='read_by', on_delete=models.CASCADE, db_index=True)
+    user = models.ForeignKey(User, related_name='read_messages', on_delete=models.CASCADE, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        db_table = 'message_reads'
+        verbose_name = 'message read'
+        verbose_name_plural = 'message reads'
+        ordering = ('created_at',)
