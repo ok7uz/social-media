@@ -9,15 +9,14 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 
-import apps.chat.routing
-import apps.notification.routing
+from apps.chat.routing import websocket_urlpatterns
 from apps.chat.middleware import JwtAuthMiddleware
 
 application = ProtocolTypeRouter({
     'http': get_asgi_application(),
     'websocket': AllowedHostsOriginValidator(
         JwtAuthMiddleware(
-            URLRouter(apps.chat.routing.websocket_urlpatterns + apps.notification.routing.websocket_urlpatterns)
+            URLRouter(websocket_urlpatterns)
         )
     )
 })

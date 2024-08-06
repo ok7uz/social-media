@@ -22,6 +22,7 @@ THIRD_PARTY_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
     'social_django',
+    'fcm_django'
 ]
 
 INSTALLED_APPS = [
@@ -148,3 +149,8 @@ AUTHENTICATION_BACKENDS = (
     'social_core.backends.apple.AppleIdAuth',
     'django.contrib.auth.backends.ModelBackend',
 )
+
+FCM_DJANGO_SETTINGS = {
+    "ONE_DEVICE_PER_USER": False,
+    "DELETE_INACTIVE_DEVICES": True,
+}

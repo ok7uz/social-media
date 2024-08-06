@@ -1,8 +1,7 @@
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from fcm_django.models import FCMDevice
 
 from apps.accounts.models import User
 from config.utils import CustomAutoField
@@ -22,17 +21,25 @@ class Notification(models.Model):
 
     def __str__(self):
         return f'@{self.user.username}: {self.message}'
+    
+
+class FCMToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'fcm_tokens'
+        verbose_name = 'fcm token'
+        verbose_name_plural = 'fcm tokens'
+        ordering = ('-created_at',)
 
 
 @receiver(post_save, sender=Notification)
 def notify_user(sender, instance, created, **kwargs):
     if created:
-        group_name = f'user_{instance.user.id}'
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            group_name,
-            {
-                'type': 'send_notification',
-                'text': instance.message
-            }
-        )
+        try:
+            devices = FCMDevice.objects.filter(user=instance.user)
+            devices.send_message(title='Notification', body=instance.message)
+        except Exception as e:
+            print({'error': e})
