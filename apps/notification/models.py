@@ -8,9 +8,16 @@ from config.utils import CustomAutoField
 
 
 class Notification(models.Model):
+
+    class Types(models.TextChoices):
+        FOLLOW = 'follow', 'Follow'
+        CONTENT = 'content', 'Content'
+
     id = CustomAutoField(primary_key=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-    message = models.TextField()
+    title = models.CharField(max_length=255)
+    body = models.TextField()
+    type = models.CharField(max_length=10, choices=Types)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -40,6 +47,6 @@ def notify_user(sender, instance, created, **kwargs):
     if created:
         try:
             devices = FCMDevice.objects.filter(user=instance.user)
-            devices.send_message(title='Notification', body=instance.message)
+            devices.send_message(title=instance.title, body=instance.message, data={'type': instance.type})
         except Exception as e:
             print({'error': e})

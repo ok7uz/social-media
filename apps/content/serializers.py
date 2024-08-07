@@ -6,6 +6,7 @@ from apps.accounts.models import User
 from apps.accounts.serializers import UserListSerializer
 from apps.content.models import Content, Like, SavedContent, Tag
 from apps.content_plan.models import ContentPlan
+from apps.notification.models import Notification
 from config.utils import TimestampField
 
 
@@ -64,6 +65,10 @@ class ContentSerializer(serializers.ModelSerializer):
         for username in tagged_users:
             user = get_object_or_404(User, username=username)
             content.tagged_users.add(user)
+        
+        if content_plan:
+            for user in content_plan.users.all():
+                Notification.objects.create(user=user, title=f'@{content.user.username} created new content', type='content')
         return content
 
     def update(self, instance, validated_data):

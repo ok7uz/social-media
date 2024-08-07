@@ -24,7 +24,7 @@ class Tag(models.Model):
 class Content(models.Model):
 
     class Type(models.TextChoices):
-        POST = 'content', 'Content'
+        CONTENT = 'content', 'Content'
         MESSAGE = 'message', 'Message'
 
     class MediaType(models.TextChoices):
