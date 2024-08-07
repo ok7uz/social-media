@@ -9,7 +9,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ('id', 'message', 'created_at')
+        fields = ('id', 'title', 'body', 'type', 'created_at')
 
 
 class FCMTokenSerializer(serializers.ModelSerializer):
