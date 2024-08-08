@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from drf_spectacular.openapi import OpenApiResponse
 from drf_spectacular.utils import extend_schema
 
-from apps.notification.serializers import FCMTokenSerializer, NotificationSerializer
+from apps.notification.serializers import FCMDeviceSerializer, NotificationSerializer
 
 
 class NotificationView(APIView):
@@ -23,18 +23,18 @@ class NotificationView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class SaveFCMTokenView(APIView):
-    serializer_class = FCMTokenSerializer
+class SaveFCMDeviceView(APIView):
+    serializer_class = FCMDeviceSerializer
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
-        request=FCMTokenSerializer,
+        request=FCMDeviceSerializer,
         responses={201: OpenApiResponse(description='FCM token saved.')},
         tags=['Notification'],
         description='Save FCM token'
     )
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=request.data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
             serializer.save(user=request.user)
             return Response({"message": "FCM token saved."}, status=status.HTTP_201_CREATED)

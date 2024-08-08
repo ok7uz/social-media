@@ -1,6 +1,7 @@
+from fcm_django.models import FCMDevice, DeviceType
 from rest_framework import serializers
 
-from apps.notification.models import Notification, FCMToken
+from apps.notification.models import Notification
 from config.utils import TimestampField
 
 
@@ -12,8 +13,8 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'body', 'type', 'created_at')
 
 
-class FCMTokenSerializer(serializers.ModelSerializer):
+class FCMDeviceSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = FCMToken
-        fields = ['token']
+        model = FCMDevice
+        fields = ('name', 'device_id', 'registration_id', 'type')
