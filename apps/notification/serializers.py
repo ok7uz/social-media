@@ -1,4 +1,4 @@
-from fcm_django.models import FCMDevice, DeviceType
+from fcm_django.models import FCMDevice
 from rest_framework import serializers
 
 from apps.notification.models import Notification

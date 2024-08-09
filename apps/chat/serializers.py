@@ -1,3 +1,4 @@
+from django.core.files.storage import default_storage
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 from drf_spectacular.utils import extend_schema_field
@@ -135,3 +136,19 @@ class CreateGroupSerializer(ChatSerializer):
                 if not chat.participants.filter(id=user.id).exists():
                     chat.participants.add(user)
         return chat
+
+
+class MediaSerializer(serializers.Serializer):
+    media = serializers.FileField()
+
+    def create(self, validated_data):
+        print(5)
+        return validated_data
+
+    def validate(self, attrs):
+        print(1)
+        file = attrs.get('media')
+        print(2)
+        file_path = default_storage.save(file.name, file)
+        print(3, file_path)
+        return {'media': file_path}

@@ -1,9 +1,7 @@
-import base64
 import json
 from urllib.parse import urlunparse
 
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.core.files.base import ContentFile
 from django.http import HttpRequest
 
 from apps.chat.models import Chat, Message
@@ -53,11 +51,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         media = text_data_json.get('media', None)
         media_type = text_data_json.get('media_type', None)
         if message_text or media:
-            if media:
-                file_str, file_name = media['data'], media['file_name']
-                media = ContentFile(
-                    base64.b64decode(file_str), name=file_name
-                )
             message = await Message.objects.acreate(
                 chat=self.chat,
                 sender=self.user,
