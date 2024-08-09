@@ -11,6 +11,7 @@ from rest_framework_simplejwt.serializers import PasswordField
 from rest_framework_simplejwt.tokens import RefreshToken
 from social_django.utils import load_strategy, load_backend
 
+from apps.chat.models import ChatSetting
 from apps.content.models import Tag
 from apps.accounts.models import User
 
@@ -78,6 +79,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         user.set_password(validated_data['password'])
         user.save()
+        ChatSetting.objects.create(user=user)
         for interest in interests:
             tag, _ = Tag.objects.get_or_create(name=interest)
             user.interests.add(tag)

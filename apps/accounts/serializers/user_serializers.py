@@ -16,18 +16,27 @@ class UserSerializer(serializers.ModelSerializer):
     interest_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     interests = InterestSerializer(many=True, read_only=True)
     is_following = serializers.SerializerMethodField()
+    can_message = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name', 'bio', 'birth_date', 'age', 'profile_picture', 'cover_image',
-            'post_count', 'is_following', 'follower_count', 'following_count', 'interest_list', 'interests',
+            'post_count', 'is_following', 'follower_count', 'following_count', 'interest_list', 'interests', 'can_message',
         ]
 
     def get_is_following(self, obj) -> bool:
         request = self.context.get('request', None)
         if request and request.user.is_authenticated:
             return Follow.objects.filter(follower=request.user, following=obj).exists()
+        return False
+
+    def get_can_message(self, obj) -> bool:
+        request = self.context.get('request', None)
+        chat_settings = obj.chat_settings
+        message_first_permission = chat_settings.message_first_permission
+        if request and request.user.is_authenticated:
+            return message_first_permission != 'nobody'
         return False
 
     def update(self, instance, validated_data):

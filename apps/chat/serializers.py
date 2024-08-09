@@ -4,7 +4,7 @@ from rest_framework.generics import get_object_or_404
 from drf_spectacular.utils import extend_schema_field
 
 from config.utils import TimestampField
-from .models import Chat, Message
+from .models import Chat, Message, ChatSetting
 from apps.accounts.models import User, Follow
 from apps.accounts.serializers import UserListSerializer
 from apps.content_plan.models import Subscription, ContentPlan
@@ -142,13 +142,22 @@ class MediaSerializer(serializers.Serializer):
     media = serializers.FileField()
 
     def create(self, validated_data):
-        print(5)
         return validated_data
 
     def validate(self, attrs):
-        print(1)
         file = attrs.get('media')
-        print(2)
         file_path = default_storage.save(file.name, file)
-        print(3, file_path)
         return {'media': file_path}
+
+
+class ChatSettingSerializer(serializers.ModelSerializer):
+    response_permissions = serializers.JSONField()
+
+    class Meta:
+        model = ChatSetting
+        fields = ('message_first_permission', 'response_permissions')
+
+    def validate_reponse_permissions(self, value):
+        if not ('follower' in value or 'subscriber' in value or 'superhero' in value):
+            raise serializers.ValidationError('Invalid response permissions')
+        return value

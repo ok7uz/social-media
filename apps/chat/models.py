@@ -11,6 +11,8 @@ class Chat(models.Model):
     owner = models.ForeignKey(User, related_name='owned_chats', on_delete=models.SET_NULL, null=True, db_index=True)
     participants = models.ManyToManyField(User, related_name='chats')
     is_group = models.BooleanField(default=False)
+    is_request = models.BooleanField(default=False)
+    request_user = models.ForeignKey(User, related_name='request_chats', on_delete=models.SET_NULL, null=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
@@ -54,3 +56,25 @@ class MessageRead(models.Model):
         verbose_name = 'message read'
         verbose_name_plural = 'message reads'
         ordering = ('created_at',)
+
+
+class ChatSetting(models.Model):
+
+    class MessageFirstChoices(models.TextChoices):
+        SUPERHERO = 'superhero', 'Superhero'
+        NOBODY = 'nobody', 'Nobody'
+
+    class RespondChoices(models.TextChoices):
+        SUPERHERO = 'superhero', 'Superhero'
+        SUBSCRIBER = 'subscriber', 'Subscriber'
+        FOLLOWER = 'follower', 'Follower'
+
+    id = CustomAutoField(primary_key=True, editable=False)
+    user = models.OneToOneField(User, related_name='chat_settings', on_delete=models.CASCADE, db_index=True)
+    message_first_permission = models.CharField(max_length=10, choices=MessageFirstChoices, default=MessageFirstChoices.SUPERHERO)
+    response_permissions = models.JSONField(default=dict({'superhero': True, 'subscriber': True, 'follower': True}))
+
+    class Meta:
+        db_table = 'chat_settings'
+        verbose_name = 'chat setting'
+        verbose_name_plural = 'chat settings'
