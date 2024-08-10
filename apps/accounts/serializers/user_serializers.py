@@ -21,8 +21,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'first_name', 'last_name', 'bio', 'birth_date', 'age', 'profile_picture', 'cover_image',
-            'post_count', 'is_following', 'follower_count', 'following_count', 'interest_list', 'interests', 'can_message',
+            'id', 'username', 'first_name', 'last_name', 'email', 'bio', 'birth_date', 'age', 'profile_picture',
+            'cover_image', 'post_count', 'is_following', 'follower_count', 'following_count', 'interest_list',
+            'interests', 'can_message',
         ]
 
     def get_is_following(self, obj) -> bool:
@@ -54,7 +55,7 @@ class UserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'profile_picture', 'cover_image')
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile_picture', 'cover_image')
 
 
 class FollowSerializer(serializers.ModelSerializer):

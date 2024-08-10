@@ -53,6 +53,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     first_name = serializers.CharField(write_only=True, required=True)
     last_name = serializers.CharField(write_only=True, required=False)
+    email = serializers.CharField(write_only=True, required=False)
     birth_date = serializers.DateField(write_only=True, required=True)
     profile_picture = serializers.FileField(write_only=True, required=False)
 
@@ -64,7 +65,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'password', 'password2', 'first_name', 'last_name', 'birth_date',
+            'username', 'password', 'password2', 'email',  'first_name', 'last_name', 'birth_date',
             'profile_picture', 'interest_list', 'refresh', 'access'
         )
 
@@ -79,7 +80,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         user.set_password(validated_data['password'])
         user.save()
-        ChatSetting.objects.create(user=user)
+        ChatSetting.objects.get_or_create(user=user)
         for interest in interests:
             tag, _ = Tag.objects.get_or_create(name=interest)
             user.interests.add(tag)
@@ -190,6 +191,7 @@ class SocialAuthSerializer(serializers.Serializer):
         backend = load_backend(strategy=strategy, name=validated_data.pop('provider'), redirect_uri=None)
         token = validated_data.pop('token')
         user = backend.do_auth(token)
+        ChatSetting.objects.get_or_create(user=user)
 
         if user and user.is_active:
             refresh = self.get_token(user)

@@ -1,9 +1,10 @@
+from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from apps.chat.models import Chat, Message, MessageRead
 from apps.chat.serializers import ChatSerializer, ChatListSerializer, CreateGroupSerializer, ChatSettingSerializer
@@ -19,7 +20,9 @@ class ChatView(APIView):
         description='Get all chats'
     )
     def get(self, request):
-        chats = Chat.objects.filter(participants=request.user, is_request=False).prefetch_related('participants')
+        chats = Chat.objects.filter(participants=request.user).filter(
+            Q(is_request=False) | Q(request_user=request.user)
+        ).prefetch_related('participants')
         serializer = self.serializer_class(chats, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -54,6 +57,21 @@ class ChatDetailView(APIView):
         for message in unread_messages:
             MessageRead.objects.create(message=message, user=request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        responses={
+            204: OpenApiResponse(description='Chat deleted'),
+            403: OpenApiResponse(description='You don\'t have permission to accept this chat'),
+        },
+        tags=['Chat'],
+        description='Delete chat by id'
+    )
+    def delete(self, request, chat_id):
+        chat = get_object_or_404(Chat, id=chat_id, participants=request.user)
+        if chat.participants.filter(id=request.user.id).exists() and (not chat.is_group or chat.owner == request.user):
+            chat.delete()
+            return Response({"detail": "Chat deleted"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"detail": "You don't have permission to delete this chat"}, status=status.HTTP_403_FORBIDDEN)
 
 
 class CreateGroupView(APIView):
@@ -109,6 +127,30 @@ class ChatRequestListView(APIView):
         description='Get all request chats'
     )
     def get(self, request):
-        chats = Chat.objects.filter(participants=request.user, is_request=True).exclude(request_user=request.user).prefetch_related('participants')
+        chats = Chat.objects.filter(
+            participants=request.user, is_request=True
+        ).exclude(request_user=request.user).prefetch_related('participants')
         serializer = self.serializer_class(chats, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ChatRequestAcceptView(APIView):
+    serializer_class = ChatSerializer
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(description='Chat accepted'),
+            403: OpenApiResponse(description='You don\'t have permission to accept this chat'),
+        },
+        tags=['Chat Request'],
+        description='Accept request chat'
+    )
+    def put(self, request, chat_id):
+        chat = get_object_or_404(Chat, id=chat_id)
+        if (chat.is_request and chat.participants.filter(id=request.user.id).exists() and
+                chat.request_user != request.user):
+            chat.is_request = False
+            chat.save()
+            return Response({'detail': 'Chat accepted'}, status=status.HTTP_200_OK)
+        return Response({'detail': 'You don\'t have permission to accept this chat'}, status=status.HTTP_403_FORBIDDEN)

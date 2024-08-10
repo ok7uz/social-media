@@ -12,6 +12,8 @@ from apps.accounts.models import User
 
 USER_MANUAL_PARAMETERS = [
     OpenApiParameter('search', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Searching"),
+    OpenApiParameter('content_plan_id', type=OpenApiTypes.INT, location=OpenApiParameter.QUERY,
+                     description="Content plan ID"),
 ]
 
 

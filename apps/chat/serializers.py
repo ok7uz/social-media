@@ -30,7 +30,7 @@ class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
         fields = [
-            'id', 'name', 'image', 'owner', 'participants', 'is_group', 'created_at', 'messages'
+            'id', 'name', 'image', 'owner', 'participants', 'is_group', 'is_request', 'created_at', 'messages'
         ]
 
     def get_name(self, obj) -> str:
@@ -69,13 +69,26 @@ class ChatListSerializer(ChatSerializer):
     class Meta:
         model = Chat
         fields = [
-            'id', 'is_group', 'username', 'type', 'name', 'image', 'new_message_count',  'last_message', 'created_at'
+            'id', 'is_group', 'username', 'type', 'name', 'image', 'new_message_count', 'is_request', 'last_message', 'created_at'
         ]
+
+    def validate_username(self, value):
+        user = self.context['request'].user
+        if user.username == value:
+            raise serializers.ValidationError('You can not send message to yourself')
+        if Chat.objects.filter(participants__username=value, is_group=False).filter(
+                participants__username=user.username
+        ).exists():
+            raise serializers.ValidationError('Chat already exists')
+        return value
 
     def create(self, validated_data):
         username = validated_data.pop('username')
         participant_user = get_object_or_404(User, username=username)
-        chat = Chat.objects.create(name='testing')
+        chat = Chat.objects.create(
+            is_request=validated_data.get('is_request'),
+            request_user=self.context['request'].user if validated_data.get('is_request') else None,
+        )
         chat.participants.add(participant_user, self.context['request'].user)
         return chat
 

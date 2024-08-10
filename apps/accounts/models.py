@@ -13,12 +13,13 @@ class User(AbstractUser):
     birth_date = models.DateField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
     cover_image = models.ImageField(upload_to='covers/', null=True, blank=True)
+    email = models.EmailField(unique=True, null=True, db_index=True)
     interests = models.ManyToManyField('content.Tag', related_name='users', blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         db_table = 'users'
-        ordering = ('-created_at',)
+        ordering = ('first_name',)
         verbose_name = 'user'
         verbose_name_plural = 'users'
         indexes = [
