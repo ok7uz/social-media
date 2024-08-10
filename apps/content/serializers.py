@@ -18,7 +18,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class ContentSerializer(serializers.ModelSerializer):
-    main_tag_name = serializers.CharField(write_only=True)
+    main_tag_name = serializers.CharField(write_only=True, required=False)
     tag_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     tagged_user_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
     content_plan_id = serializers.IntegerField(source='content_plan.id', write_only=True, required=False)
@@ -36,7 +36,7 @@ class ContentSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'user', 'text', 'comment_count', 'type', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
             'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'tag_list', 'tags',
-            'tagged_users', 'content_plan_id', 'banner'
+            'tagged_users', 'content_plan_id', 'media_aspect_ratio', 'banner'
         )
 
     def get_has_liked(self, obj) -> bool:
