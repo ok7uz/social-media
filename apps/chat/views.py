@@ -146,7 +146,7 @@ class ChatRequestAcceptView(APIView):
         tags=['Chat Request'],
         description='Accept request chat'
     )
-    def put(self, request, chat_id):
+    def post(self, request, chat_id):
         chat = get_object_or_404(Chat, id=chat_id)
         if (chat.is_request and chat.participants.filter(id=request.user.id).exists() and
                 chat.request_user != request.user):
