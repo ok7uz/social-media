@@ -65,3 +65,15 @@ class Follow(models.Model):
 
     def __str__(self):
         return f'{self.follower} follows {self.following}'
+
+
+class UserBlock(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False)
+    blocker = models.ForeignKey(User, related_name='blocked_by', on_delete=models.CASCADE, db_index=True)
+    blocked = models.ForeignKey(User, related_name='blocked', on_delete=models.CASCADE, db_index=True)
+
+    class Meta:
+        db_table = 'user_blocks'
+        unique_together = ('blocker', 'blocked')
+        verbose_name = 'block'
+        verbose_name_plural = 'blocks'

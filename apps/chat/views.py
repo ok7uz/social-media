@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
+from apps.accounts.models import UserBlock
 from apps.chat.models import Chat, Message, MessageRead
 from apps.chat.serializers import ChatSerializer, ChatListSerializer, CreateGroupSerializer, ChatSettingSerializer
 
@@ -95,7 +96,7 @@ class ChatSettingView(APIView):
 
     @extend_schema(
         responses={200: ChatSettingSerializer},
-        tags=['Chat'],
+        tags=['Chat Setting'],
         description='Get chat setting'
     )
     def get(self, request):
@@ -106,7 +107,7 @@ class ChatSettingView(APIView):
     @extend_schema(
         request=ChatSettingSerializer,
         responses={200: ChatSettingSerializer},
-        tags=['Chat'],
+        tags=['Chat Setting'],
         description='Update chat setting'
     )
     def put(self, request):
@@ -154,3 +155,25 @@ class ChatRequestAcceptView(APIView):
             chat.save()
             return Response({'detail': 'Chat accepted'}, status=status.HTTP_200_OK)
         return Response({'detail': 'You don\'t have permission to accept this chat'}, status=status.HTTP_403_FORBIDDEN)
+
+
+class ChatRequestBlockView(APIView):
+    serializer_class = ChatSerializer
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(
+        responses={
+            204: OpenApiResponse(description='Chat blocked'),
+            403: OpenApiResponse(description='You don\'t have permission to block this chat'),
+        },
+        tags=['Chat Request'],
+        description='Block request chat'
+    )
+    def post(self, request, chat_id):
+        chat = get_object_or_404(Chat, id=chat_id)
+        if (chat.is_request and chat.participants.filter(id=request.user.id).exists() and
+                chat.request_user != request.user):
+            UserBlock.objects.get_or_create(blocker=request.user, blocked=chat.request_user)
+            chat.delete()
+            return Response({'detail': 'Chat blocked'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'detail': 'You don\'t have permission to block this chat'}, status=status.HTTP_403_FORBIDDEN)

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.content.models import Tag
-from apps.accounts.models import User, Follow
+from apps.accounts.models import User, Follow, UserBlock
 from config.utils import TimestampField
 
 
@@ -17,13 +17,14 @@ class UserSerializer(serializers.ModelSerializer):
     interests = InterestSerializer(many=True, read_only=True)
     is_following = serializers.SerializerMethodField()
     can_message = serializers.SerializerMethodField(read_only=True)
+    is_blocked = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name', 'email', 'bio', 'birth_date', 'age', 'profile_picture',
             'cover_image', 'post_count', 'is_following', 'follower_count', 'following_count', 'interest_list',
-            'interests', 'can_message',
+            'interests', 'can_message', 'is_blocked'
         ]
 
     def get_is_following(self, obj) -> bool:
@@ -38,6 +39,12 @@ class UserSerializer(serializers.ModelSerializer):
         message_first_permission = chat_settings.message_first_permission
         if request and request.user.is_authenticated:
             return message_first_permission != 'nobody'
+        return False
+
+    def get_is_blocked(self, obj) -> bool:
+        request = self.context.get('request', None)
+        if request and request.user.is_authenticated:
+            return UserBlock.objects.filter(user=request.user, blocked_user=obj).exists()
         return False
 
     def update(self, instance, validated_data):
