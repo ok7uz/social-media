@@ -124,7 +124,7 @@ class CreateGroupSerializer(ChatSerializer):
     group_name = serializers.CharField(write_only=True, required=False)
     group_image = serializers.ImageField(write_only=True, required=False)
     content_plan_id = serializers.IntegerField(write_only=True, required=False)
-    user_id_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    user_id_list = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
 
     class Meta:
         model = Chat
