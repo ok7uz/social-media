@@ -16,7 +16,7 @@ class MessageSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Message
-        fields = ['id', 'sender_username', 'content', 'media', 'media_type', 'created_at']
+        fields = ['id', 'sender_username', 'content', 'media', 'media_type', 'media_aspect_ratio', 'created_at']
 
 
 class ChatSerializer(serializers.ModelSerializer):
