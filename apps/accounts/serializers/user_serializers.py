@@ -44,7 +44,7 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_blocked(self, obj) -> bool:
         request = self.context.get('request', None)
         if request and request.user.is_authenticated:
-            return UserBlock.objects.filter(user=request.user, blocked_user=obj).exists()
+            return UserBlock.objects.filter(blocker=request.user, blocked=obj).exists()
         return False
 
     def update(self, instance, validated_data):
