@@ -20,6 +20,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
 
 class ChatSerializer(serializers.ModelSerializer):
+    is_request = serializers.BooleanField(required=False, default=False)
     messages = MessageSerializer(many=True, read_only=True)
     participants = UserListSerializer(many=True, read_only=True)
     owner = UserListSerializer(read_only=True)
