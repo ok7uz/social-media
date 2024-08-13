@@ -53,7 +53,8 @@ class ContentSerializer(serializers.ModelSerializer):
         tagged_users = validated_data.pop('tagged_user_list', [])
         content_plan = validated_data.pop('content_plan', None)
         if content_plan:
-            validated_data['content_plan'] = get_object_or_404(ContentPlan, id=content_plan['id'])
+            content_plan = get_object_or_404(ContentPlan, id=content_plan['id'])
+            validated_data['content_plan'] = content_plan
         content = Content.objects.create(**validated_data)
         if main_tag_name:
             main_tag, _ = Tag.objects.get_or_create(name=main_tag_name)
