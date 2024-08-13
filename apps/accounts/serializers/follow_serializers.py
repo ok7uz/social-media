@@ -14,7 +14,11 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         follow, _ = Follow.objects.get_or_create(**validated_data)
-        Notification.objects.create(user=follow.following, message=f'@{follow.follower.username} started following you')
+        Notification.objects.create(
+            user=validated_data.get('following'),
+            title=f'@{validated_data.get("follower").username} started following you',
+            type='follow'
+        )
         return follow
 
     def validate(self, attrs):

@@ -29,7 +29,6 @@ class FollowAPIView(APIView):
         serializer = self.serializer_class(data=data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            Notification.objects.create(user=user, title=f'@{request.user.username} started following you', type='follow')
             return Response({'detail': 'Successfully followed'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
