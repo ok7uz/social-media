@@ -1,7 +1,8 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from apps.content.serializers import ContentSerializer
-from apps.content_plan.models import ContentPlan
+from apps.content_plan.models import ContentPlan, Subscription
 from config.utils import TimestampField
 
 
@@ -43,8 +44,13 @@ class ContentPlanListSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    content_plan_id = serializers.IntegerField(write_only=True, required=False)
     created_at = TimestampField(read_only=True)
 
     class Meta:
-        model = ContentPlan
-        fields = ('id', 'name', 'price', 'price_type', 'banner', 'is_active', 'created_at')
+        model = Subscription
+        fields = ('id', 'content_plan_id', 'created_at')
+
+    def create(self, validated_data):
+        content_plan = get_object_or_404(ContentPlan, id=validated_data['content_plan_id'])
+        return Subscription.objects.create(user=self.context['request'].user, content_plan=content_plan)

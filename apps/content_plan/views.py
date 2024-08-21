@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -70,15 +70,18 @@ class UserContentPlanListAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class SubscribtionView(APIView):
+class SubscribeView(APIView):
     serializer_class = SubscriptionSerializer
     permission_classes = (IsAuthenticated,)
 
-    @extend_schema(responses={200: ContentPlanSerializer(many=True)}, tags=['User'],
-                   description='Get subscribed content plans')
+    @extend_schema(request=None, responses={
+        200: OpenApiResponse(description='Subscribed'),
+        400: OpenApiResponse(description='Bad request')
+    }, tags=['Subscription'],
+                   description='Subscribe to content plan')
     def post(self, request, plan_id):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
-            serializer.save(plan_id=plan_id)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            serializer.save(content_plan_id=plan_id, user=request.user)
+            return Response({'detail': 'Successfully subscribed'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
