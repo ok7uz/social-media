@@ -6,7 +6,6 @@ from apps.accounts.models import User, Follow
 from apps.accounts.serializers import UserListSerializer
 from apps.content.models import Content, Like, SavedContent, Tag
 from apps.content_plan.models import ContentPlan, Subscription
-from apps.content_plan.serializers import ContentPlanSerializer
 from apps.notification.models import Notification
 from config.utils import TimestampField
 
@@ -16,6 +15,17 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name')
+
+
+class ContentPlanInfoSerializer(serializers.ModelSerializer):
+    is_active = serializers.BooleanField(default=True)
+    created_at = TimestampField(read_only=True)
+
+    class Meta:
+        model = ContentPlan
+        fields = (
+            'id', 'name', 'banner', 'is_active', 'description', 'created_at'
+        )
 
 
 class ContentSerializer(serializers.ModelSerializer):
@@ -30,7 +40,7 @@ class ContentSerializer(serializers.ModelSerializer):
     has_saved = serializers.SerializerMethodField()
     created_at = TimestampField(read_only=True)
     updated_at = TimestampField(read_only=True)
-    content_plan = ContentPlanSerializer(read_only=True)
+    content_plan = ContentPlanInfoSerializer(read_only=True)
     has_subscribed = serializers.SerializerMethodField(read_only=True)
     is_following = serializers.SerializerMethodField(read_only=True)
     tagged_users = UserListSerializer(many=True, read_only=True)
@@ -118,6 +128,17 @@ class ContentSerializer(serializers.ModelSerializer):
         if value.size > max_size:
             raise ValidationError(f"File size must be less than {max_size // (1024 * 1024)} MB.")
         return value
+
+
+class ContentListSerializer(ContentSerializer):
+
+    class Meta:
+        model = Content
+        fields = (
+            'id', 'user', 'text', 'comment_count', 'type', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
+            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'tag_list', 'tags',
+            'tagged_users', 'media_aspect_ratio', 'banner', 'has_subscribed', 'is_following',
+        )
 
 
 class ContentWithoutUserSerializer(ContentSerializer):

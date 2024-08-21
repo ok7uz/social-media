@@ -188,8 +188,9 @@ class DiscoverContentAPIView(APIView):
     )
     def get(self, request):
         user = request.user
-        discover_contents = Content.objects.filter(tags__in=user.interests.all())
-        discover_contents = discover_contents.select_related('user').prefetch_related('tags', 'tagged_users')
+        # discover_contents = Content.objects.filter(tags__in=user.interests.all())
+        # discover_contents = discover_contents.select_related('user').prefetch_related('tags', 'tagged_users')
+        discover_contents = Content.objects.exclude(user=user)
         serializer = ContentSerializer(discover_contents, many=True, context={'request': request})
         return Response(serializer.data)
 

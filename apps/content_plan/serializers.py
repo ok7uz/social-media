@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
+from apps.content.serializers import ContentListSerializer
 from apps.content_plan.models import ContentPlan, Subscription
 from config.utils import TimestampField
 
@@ -10,12 +11,13 @@ class ContentPlanSerializer(serializers.ModelSerializer):
     created_at = TimestampField(read_only=True)
     subscriber_count = serializers.SerializerMethodField(read_only=True)
     length = serializers.SerializerMethodField(read_only=True)
+    contents = ContentListSerializer(read_only=True, many=True)
 
     class Meta:
         model = ContentPlan
         fields = (
             'id', 'name', 'price', 'price_type', 'banner', 'is_active', 'description', 'subscriber_count', 'length',
-            'trial_days', 'trial_discount_percent', 'trial_description', 'created_at'
+            'trial_days', 'trial_discount_percent', 'trial_description', 'created_at', 'contents'
         )
 
     def get_subscriber_count(self, obj) -> int:
