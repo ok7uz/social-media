@@ -16,10 +16,11 @@ class MessageSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Message
-        fields = ['id', 'sender_username', 'content', 'media', 'media_type', 'created_at']
+        fields = ['id', 'sender_username', 'content', 'media', 'media_type', 'media_aspect_ratio', 'created_at']
 
 
 class ChatSerializer(serializers.ModelSerializer):
+    is_request = serializers.BooleanField(required=False, default=False)
     messages = MessageSerializer(many=True, read_only=True)
     participants = UserListSerializer(many=True, read_only=True)
     owner = UserListSerializer(read_only=True)
@@ -123,7 +124,7 @@ class CreateGroupSerializer(ChatSerializer):
     group_name = serializers.CharField(write_only=True, required=False)
     group_image = serializers.ImageField(write_only=True, required=False)
     content_plan_id = serializers.IntegerField(write_only=True, required=False)
-    user_id_list = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    user_id_list = serializers.ListField(child=serializers.IntegerField(), write_only=True, required=False)
 
     class Meta:
         model = Chat

@@ -50,13 +50,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message_text = text_data_json.get('message', None)
         media = text_data_json.get('media', None)
         media_type = text_data_json.get('media_type', None)
+        media_aspect_ratio = text_data_json.get('media_aspect_ratio', None)
         if message_text or media:
             message = await Message.objects.acreate(
                 chat=self.chat,
                 sender=self.user,
                 content=message_text,
                 media=media,
-                media_type=media_type
+                media_type=media_type,
+                media_aspect_ratio=media_aspect_ratio
             )
 
             await self.channel_layer.group_send(

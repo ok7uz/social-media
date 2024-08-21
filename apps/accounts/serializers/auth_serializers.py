@@ -53,7 +53,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     first_name = serializers.CharField(write_only=True, required=True)
     last_name = serializers.CharField(write_only=True, required=False)
-    email = serializers.CharField(write_only=True, required=False)
+    email = serializers.CharField(write_only=True, required=False, default=None)
     birth_date = serializers.DateField(write_only=True, required=True)
     profile_picture = serializers.FileField(write_only=True, required=False)
 

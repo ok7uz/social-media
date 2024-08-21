@@ -37,6 +37,7 @@ class Message(models.Model):
     content = models.TextField(null=True)
     media = models.FileField(upload_to='messages/media/', null=True)
     media_type = models.CharField(max_length=10, choices=MediaType, null=True)
+    media_aspect_ratio = models.FloatField(null=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:

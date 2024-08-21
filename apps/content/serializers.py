@@ -2,10 +2,11 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from apps.accounts.models import User
+from apps.accounts.models import User, Follow
 from apps.accounts.serializers import UserListSerializer
 from apps.content.models import Content, Like, SavedContent, Tag
-from apps.content_plan.models import ContentPlan
+from apps.content_plan.models import ContentPlan, Subscription
+from apps.content_plan.serializers import ContentPlanSerializer
 from apps.notification.models import Notification
 from config.utils import TimestampField
 
@@ -29,6 +30,9 @@ class ContentSerializer(serializers.ModelSerializer):
     has_saved = serializers.SerializerMethodField()
     created_at = TimestampField(read_only=True)
     updated_at = TimestampField(read_only=True)
+    content_plan = ContentPlanSerializer(read_only=True)
+    has_subscribed = serializers.SerializerMethodField(read_only=True)
+    is_following = serializers.SerializerMethodField(read_only=True)
     tagged_users = UserListSerializer(many=True, read_only=True)
 
     class Meta:
@@ -36,12 +40,20 @@ class ContentSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'user', 'text', 'comment_count', 'type', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
             'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'tag_list', 'tags',
-            'tagged_users', 'content_plan_id', 'media_aspect_ratio', 'banner'
+            'tagged_users', 'content_plan_id', 'media_aspect_ratio', 'banner', 'has_subscribed', 'is_following',
+            'content_plan'
         )
 
     def get_has_liked(self, obj) -> bool:
         user = self.context.get('request').user
         return Like.objects.filter(content=obj, user=user).exists()
+
+    def get_has_subscribed(self, obj) -> bool:
+        return Subscription.objects.filter(content_plan=obj, user=self.context.get('request').user).exists()
+
+    def get_is_following(self, obj) -> bool:
+        user = self.context.get('request').user
+        return Follow.objects.filter(follower=user, following=obj.user).exists()
 
     def get_has_saved(self, obj) -> bool:
         user = self.context.get('request').user
@@ -53,7 +65,8 @@ class ContentSerializer(serializers.ModelSerializer):
         tagged_users = validated_data.pop('tagged_user_list', [])
         content_plan = validated_data.pop('content_plan', None)
         if content_plan:
-            validated_data['content_plan'] = get_object_or_404(ContentPlan, id=content_plan['id'])
+            content_plan = get_object_or_404(ContentPlan, id=content_plan['id'])
+            validated_data['content_plan'] = content_plan
         content = Content.objects.create(**validated_data)
         if main_tag_name:
             main_tag, _ = Tag.objects.get_or_create(name=main_tag_name)
