@@ -49,7 +49,10 @@ class ContentSerializer(serializers.ModelSerializer):
         return Like.objects.filter(content=obj, user=user).exists()
 
     def get_has_subscribed(self, obj) -> bool:
-        return Subscription.objects.filter(content_plan=obj, user=self.context.get('request').user).exists()
+        return Subscription.objects.filter(
+            content_plan=obj.content_plan,
+            user=self.context.get('request').user
+        ).exists()
 
     def get_is_following(self, obj) -> bool:
         user = self.context.get('request').user

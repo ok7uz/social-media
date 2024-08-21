@@ -68,7 +68,7 @@ class Content(models.Model):
             self.tags.add(tag_instance)
 
     def __str__(self):
-        return self.text
+        return self.text if self.text else 'Untitled'
 
 
 class SavedContent(models.Model):
