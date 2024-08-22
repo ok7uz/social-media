@@ -125,7 +125,7 @@ class ContentSerializer(serializers.ModelSerializer):
     @staticmethod
     def validate_media(value):
         max_size = 200 * 1024 * 1024  # 200 MB
-        if value.size > max_size:
+        if value and value.size > max_size:
             raise ValidationError(f"File size must be less than {max_size // (1024 * 1024)} MB.")
         return value
 
