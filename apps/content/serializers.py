@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from apps.accounts.models import User, Follow
 from apps.accounts.serializers import UserListSerializer
-from apps.content.models import Content, Like, SavedContent, Tag
+from apps.content.models import Content, Like, SavedContent, Tag, ContentReport
 from apps.content_plan.models import ContentPlan, Subscription
 from apps.notification.models import Notification
 from config.utils import TimestampField
@@ -133,6 +133,7 @@ class ContentSerializer(serializers.ModelSerializer):
 class ContentListSerializer(ContentSerializer):
 
     class Meta:
+
         model = Content
         fields = (
             'id', 'user', 'text', 'comment_count', 'type', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
@@ -158,3 +159,12 @@ class SavedContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SavedContent
         fields = ('content', 'user')
+
+
+class ContentReportSerializer(serializers.ModelSerializer):
+    content_id = serializers.IntegerField(write_only=True)
+    content = ContentSerializer(read_only=True)
+
+    class Meta:
+        model = ContentReport
+        fields = '__all__'

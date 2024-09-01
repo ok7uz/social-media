@@ -4,7 +4,7 @@ from urllib.parse import urlunparse
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.http import HttpRequest
 
-from apps.chat.models import Chat, Message
+from apps.chat.models import Chat, Message, MessageRead
 from apps.chat.serializers import MessageSerializer
 
 
@@ -60,6 +60,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 media_type=media_type,
                 media_aspect_ratio=media_aspect_ratio
             )
+            MessageRead.objects.create(message=message, user=self.user)
 
             await self.channel_layer.group_send(
                 self.room_group_name,

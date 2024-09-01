@@ -7,8 +7,9 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from apps.accounts.models import User
-from apps.content.models import Content, Like, SavedContent, Tag
-from apps.content.serializers import TagSerializer, ContentSerializer, ContentWithoutUserSerializer
+from apps.content.models import Content, Like, SavedContent, Tag, ContentReport
+from apps.content.serializers import TagSerializer, ContentSerializer, ContentWithoutUserSerializer, \
+    ContentReportSerializer
 from apps.notification.models import Notification
 
 
@@ -196,15 +197,45 @@ class DiscoverContentAPIView(APIView):
 
 
 class TagListAPIView(APIView):
-    serialize_class = TagSerializer
+    serializer_class = TagSerializer
     permission_classes = (AllowAny,)
 
     @extend_schema(
-        responses={200: serialize_class(many=True)},
+        responses={200: serializer_class(many=True)},
         tags=['Tag'],
         description='Get all tags'
     )
     def get(self, request):
         tags = Tag.objects.all()
-        serializer = self.serialize_class(tags, many=True, context={'request': request})
+        serializer = self.serializer_class(tags, many=True, context={'request': request})
         return Response(serializer.data)
+
+
+class ContentReportListView(APIView):
+    serializer_class = ContentReportSerializer
+    permission_classes = (IsAuthenticated, )
+
+
+    @extend_schema(
+        responses={200: serializer_class(many=True)},
+        tags=['Report'],
+        description='Get all reports'
+    )
+    def get(self, request):
+        tags = ContentReport.objects.all()
+        serializer = self.serializer_class(tags, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+    @extend_schema(
+        request=serializer_class(),
+        responses={201: serializer_class()},
+        tags=['Report'],
+        description='Create a report'
+    )
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -12,4 +12,5 @@ urlpatterns = [
     path('contents/<int:content_id>/save/', SaveContentAPIView.as_view(), name='content-save'),
     path('user/<str:username>/contents/', UserContentAPIView.as_view(), name='user-contents'),
     path('tags', TagListAPIView.as_view(), name='tag-list'),
+    path('reports/', ContentReportListView.as_view(), name='report-list')
 ]

@@ -97,3 +97,14 @@ class Like(models.Model):
 
     def __str__(self):
         return f'{self.user} likes {self.content}'
+
+
+class ContentReport(models.Model):
+    id = CustomAutoField(primary_key=True, editable=False)
+    content = models.ForeignKey(Content, on_delete=models.CASCADE, related_name='reports', db_index=True)
+    message = models.CharField(max_length=512, null=True)
+
+    class Meta:
+        db_table = 'content_reports'
+        verbose_name = 'Content report'
+        verbose_name_plural = 'Content reports'
