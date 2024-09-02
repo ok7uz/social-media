@@ -39,6 +39,10 @@ class User(AbstractUser):
         return Follow.objects.filter(follower=self).count()
 
     @property
+    def subscriber_count(self) -> int:
+        return User.objects.filter(subscriptions__content_plan__user=self).distinct().count()
+
+    @property
     def age(self) -> Optional[int]:
         if self.birth_date:
             today = date.today()

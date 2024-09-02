@@ -23,8 +23,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name', 'email', 'bio', 'birth_date', 'age', 'profile_picture',
-            'cover_image', 'post_count', 'is_following', 'follower_count', 'following_count', 'interest_list',
-            'interests', 'can_message', 'is_blocked'
+            'cover_image', 'post_count', 'is_following', 'follower_count', 'following_count', 'subscriber_count',
+            'interest_list', 'interests', 'can_message', 'is_blocked'
         ]
 
     def get_is_following(self, obj) -> bool:

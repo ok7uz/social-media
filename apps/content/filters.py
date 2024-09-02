@@ -9,4 +9,4 @@ class ContentFilter(filters.FilterSet):
 
     class Meta:
         model = Content
-        fields = ['search', 'typee']
+        fields = ['search', 'type']

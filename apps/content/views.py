@@ -1,23 +1,34 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
 from apps.accounts.models import User
+from apps.content.filters import ContentFilter
 from apps.content.models import Content, Like, SavedContent, Tag, ContentReport
 from apps.content.serializers import TagSerializer, ContentSerializer, ContentWithoutUserSerializer, \
-    ContentReportSerializer
+    ContentReportSerializer, PaginatedContentSerializer, ContentListSerializer
 from apps.notification.models import Notification
 
 
-COURSE_MANUAL_PARAMETERS = [
+CONTENT_MANUAL_PARAMETERS = [
     OpenApiParameter('search', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Searching"),
-    OpenApiParameter('type', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Content Type"),
+    OpenApiParameter(
+        'type', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Content Type", enum=Content.Type
+    ),
 ]
 
+# [x] grow va disc faqat content_type == content
+# [x] myself contents and messages
+# [x] mention notif
+# [x] message yaratish xato bor
+# [X] pagi contents and chat messages
+# [ ] chatda content plan name
+# [ ] subs and superhero count
 
 class ContentAPIView(APIView):
     serializer_class = ContentSerializer
@@ -26,14 +37,15 @@ class ContentAPIView(APIView):
     @extend_schema(
         responses={200: ContentSerializer(many=True)},
         tags=['Content'],
-        description='Get recommended contents'
+        description='Get user contents',
+        parameters=CONTENT_MANUAL_PARAMETERS
     )
     def get(self, request):
-        user = request.user
-        followed_users = User.objects.filter(followers__follower=user)
-        recommended_contents = Content.objects.filter(user__in=followed_users)
-        recommended_contents = recommended_contents.select_related('user').prefetch_related('tags', 'tagged_users')
-        serializer = ContentSerializer(recommended_contents, many=True, context={'request': request})
+        contents = Content.objects.filter(user=request.user)
+        contents = contents.select_related('user').prefetch_related('tags', 'tagged_users')
+        content_filter = ContentFilter(data=request.GET, request=request, queryset=contents)
+        filtered_contents= content_filter.qs if content_filter.is_valid() else contents.none()
+        serializer = ContentSerializer(filtered_contents, many=True, context={'request': request})
         return Response(serializer.data)
 
     @extend_schema(
@@ -125,7 +137,7 @@ class LikeAPIView(APIView):
         content = get_object_or_404(Content, id=content_id)
         like, created = Like.objects.get_or_create(user=request.user, content=content)
         if created:
-            Notification.objects.create(user=content.user, message=f'@{request.user.username} liked your content')
+            Notification.objects.create(user=content.user, title=f'@{request.user.username} liked your content')
         return Response(status=status.HTTP_201_CREATED)
 
     @extend_schema(
@@ -179,11 +191,30 @@ class SavedContentAPIView(APIView):
         return Response(serializer.data)
 
 
+class GrowContentAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(
+        responses={200: PaginatedContentSerializer()},
+        tags=['Content'],
+        description='Get grow contents'
+    )
+    def get(self, request):
+        user = request.user
+        followed_users = User.objects.filter(followers__follower=user)
+        recommended_contents = Content.objects.filter(user__in=followed_users, type='content')
+        queryset = recommended_contents.select_related('user').prefetch_related('tags', 'tagged_users')
+        paginator = PageNumberPagination()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        serializer = ContentListSerializer(paginated_queryset, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)
+
+
 class DiscoverContentAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @extend_schema(
-        responses={200: ContentSerializer(many=True)},
+        responses={200: PaginatedContentSerializer()},
         tags=['Content'],
         description='Get discover contents'
     )
@@ -191,9 +222,12 @@ class DiscoverContentAPIView(APIView):
         user = request.user
         # discover_contents = Content.objects.filter(tags__in=user.interests.all())
         # discover_contents = discover_contents.select_related('user').prefetch_related('tags', 'tagged_users')
-        discover_contents = Content.objects.exclude(user=user)
-        serializer = ContentSerializer(discover_contents, many=True, context={'request': request})
-        return Response(serializer.data)
+        discover_contents = Content.objects.exclude(user=user, type='content')
+        queryset = discover_contents.select_related('user').prefetch_related('tags', 'tagged_users')
+        paginator = PageNumberPagination()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        serializer = ContentListSerializer(paginated_queryset, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)
 
 
 class TagListAPIView(APIView):

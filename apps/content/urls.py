@@ -5,6 +5,7 @@ from apps.content.views import *
 
 urlpatterns = [
     path('contents/', ContentAPIView.as_view(), name='content-list'),
+    path('grow/', GrowContentAPIView.as_view(), name='grow-contents'),
     path('discover/', DiscoverContentAPIView.as_view(), name='discover-contents'),
     path('contents/saved/', SavedContentAPIView.as_view(), name='content-saved'),
     path('contents/<int:content_id>/', ContentDetailAPIView.as_view(), name='content-detail'),

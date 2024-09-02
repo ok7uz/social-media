@@ -1,4 +1,5 @@
 from django.db.models import Q
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -8,7 +9,8 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from apps.accounts.models import UserBlock
 from apps.chat.models import Chat, Message, MessageRead
-from apps.chat.serializers import ChatSerializer, ChatListSerializer, CreateGroupSerializer, ChatSettingSerializer
+from apps.chat.serializers import ChatSerializer, ChatListSerializer, CreateGroupSerializer, ChatSettingSerializer, \
+    MessageSerializer, PaginatedMessageSerializer
 
 
 class ChatView(APIView):
@@ -178,3 +180,20 @@ class ChatRequestBlockView(APIView):
             chat.delete()
             return Response({'detail': 'Chat blocked'}, status=status.HTTP_204_NO_CONTENT)
         return Response({'detail': 'You don\'t have permission to block this chat'}, status=status.HTTP_403_FORBIDDEN)
+
+
+
+class MessageListAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(
+        responses={200: PaginatedMessageSerializer()},
+        tags=['Chat'],
+        description='Get chat messages'
+    )
+    def get(self, request, chat_id):
+        queryset = Message.objects.filter(chat__id=chat_id)
+        paginator = PageNumberPagination()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        serializer = MessageSerializer(paginated_queryset, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)

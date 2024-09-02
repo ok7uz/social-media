@@ -12,6 +12,7 @@ class Notification(models.Model):
     class Types(models.TextChoices):
         FOLLOW = 'follow', 'Follow'
         CONTENT = 'content', 'Content'
+        MENTION = 'mention', 'Mention'
 
     id = CustomAutoField(primary_key=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
@@ -35,6 +36,6 @@ def notify_user(sender, instance, created, **kwargs):
     if created:
         try:
             devices: FCMDeviceQuerySet = FCMDevice.objects.filter(user=instance.user)
-            devices.send_message(title=instance.title, body=instance.message, data={'type': instance.type})
+            devices.send_message(title=instance.title, body=instance.body, data={'type': instance.type})
         except Exception as e:
             print({'error': e})

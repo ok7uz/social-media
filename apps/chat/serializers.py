@@ -19,9 +19,16 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = ['id', 'sender_username', 'content', 'media', 'media_type', 'media_aspect_ratio', 'created_at']
 
 
+class PaginatedMessageSerializer(serializers.Serializer):
+    count = serializers.IntegerField(help_text="Total number of items")
+    next = serializers.CharField(allow_null=True, help_text="URL of the next page", required=False)
+    previous = serializers.CharField(allow_null=True, help_text="URL of the previous page", required=False)
+    results = MessageSerializer(many=True, read_only=True)
+
+
+
 class ChatSerializer(serializers.ModelSerializer):
     is_request = serializers.BooleanField(required=False, default=False)
-    messages = MessageSerializer(many=True, read_only=True)
     participants = UserListSerializer(many=True, read_only=True)
     owner = UserListSerializer(read_only=True)
     name = serializers.SerializerMethodField(read_only=True)
@@ -31,7 +38,7 @@ class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
         fields = [
-            'id', 'name', 'image', 'owner', 'participants', 'is_group', 'is_request', 'created_at', 'messages'
+            'id', 'name', 'image', 'owner', 'participants', 'is_group', 'is_request', 'created_at'
         ]
 
     def get_name(self, obj) -> str:
@@ -39,9 +46,9 @@ class ChatSerializer(serializers.ModelSerializer):
             return obj.name
         user = self.context['request'].user
         participant = obj.participants.exclude(id=user.id).first()
-        if participant.last_name:
+        if participant and participant.last_name:
             return f'{participant.first_name} {participant.last_name}'
-        return participant.first_name
+        return participant.first_name if participant else 'Noname'
 
     @extend_schema_field(serializers.URLField())
     def get_image(self, obj):
@@ -50,7 +57,7 @@ class ChatSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.image.url) if obj.image else None
         user = self.context['request'].user
         participant = obj.participants.exclude(id=user.id).first()
-        if participant.profile_picture:
+        if participant and participant.profile_picture:
             return request.build_absolute_uri(participant.profile_picture.url)
         return None
 

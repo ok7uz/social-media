@@ -91,10 +91,19 @@ class ContentSerializer(serializers.ModelSerializer):
         for username in tagged_users:
             user = get_object_or_404(User, username=username)
             content.tagged_users.add(user)
+            Notification.objects.create(
+                user=user,
+                title=f'@{content.user.username} mentioned you in a post',
+                type='mention'
+            )
         
         if content_plan:
-            for user in content_plan.users.all():
-                Notification.objects.create(user=user, title=f'@{content.user.username} created new content', type='content')
+            for user in User.objects.filter(subscriptions__content_plan=content_plan):
+                Notification.objects.create(
+                    user=user,
+                    title=f'@{content.user.username} created new content',
+                    type='content'
+                )
         return content
 
     def update(self, instance, validated_data):
@@ -140,6 +149,13 @@ class ContentListSerializer(ContentSerializer):
             'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'tag_list', 'tags',
             'tagged_users', 'media_aspect_ratio', 'banner', 'has_subscribed', 'is_following',
         )
+
+
+class PaginatedContentSerializer(serializers.Serializer):
+    count = serializers.IntegerField(help_text="Total number of items")
+    next = serializers.CharField(allow_null=True, help_text="URL of the next page", required=False)
+    previous = serializers.CharField(allow_null=True, help_text="URL of the previous page", required=False)
+    results = ContentListSerializer(many=True, read_only=True)
 
 
 class ContentWithoutUserSerializer(ContentSerializer):
