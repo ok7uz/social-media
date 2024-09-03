@@ -22,6 +22,17 @@ CONTENT_MANUAL_PARAMETERS = [
     ),
 ]
 
+GROW_AND_DISCOVER_PARAMETERS = [
+    OpenApiParameter(
+        'page', type=OpenApiTypes.INT, location=OpenApiParameter.QUERY,
+        description='A page number within the paginated result set.'
+    ),
+    OpenApiParameter(
+        'page_size', type=OpenApiTypes.INT, location=OpenApiParameter.QUERY,
+        description='Number of results to return per page.'
+    )
+]
+
 # [x] grow va disc faqat content_type == content
 # [x] myself contents and messages
 # [x] mention notif
@@ -197,7 +208,8 @@ class GrowContentAPIView(APIView):
     @extend_schema(
         responses={200: PaginatedContentSerializer()},
         tags=['Content'],
-        description='Get grow contents'
+        description='Get grow contents',
+        parameters=GROW_AND_DISCOVER_PARAMETERS
     )
     def get(self, request):
         user = request.user
@@ -205,8 +217,9 @@ class GrowContentAPIView(APIView):
         recommended_contents = Content.objects.filter(user__in=followed_users, type='content')
         queryset = recommended_contents.select_related('user').prefetch_related('tags', 'tagged_users')
         paginator = PageNumberPagination()
+        paginator.page_size_query_param = 'page_size'
         paginated_queryset = paginator.paginate_queryset(queryset, request)
-        serializer = ContentListSerializer(paginated_queryset, many=True, context={'request': request})
+        serializer = ContentSerializer(paginated_queryset, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -216,17 +229,19 @@ class DiscoverContentAPIView(APIView):
     @extend_schema(
         responses={200: PaginatedContentSerializer()},
         tags=['Content'],
-        description='Get discover contents'
+        description='Get discover contents',
+        parameters=GROW_AND_DISCOVER_PARAMETERS
     )
     def get(self, request):
         user = request.user
         # discover_contents = Content.objects.filter(tags__in=user.interests.all())
         # discover_contents = discover_contents.select_related('user').prefetch_related('tags', 'tagged_users')
-        discover_contents = Content.objects.exclude(user=user, type='content')
+        discover_contents = Content.objects.filter(type='content').exclude(user=user)
         queryset = discover_contents.select_related('user').prefetch_related('tags', 'tagged_users')
         paginator = PageNumberPagination()
+        paginator.page_size_query_param = 'page_size'
         paginated_queryset = paginator.paginate_queryset(queryset, request)
-        serializer = ContentListSerializer(paginated_queryset, many=True, context={'request': request})
+        serializer = ContentSerializer(paginated_queryset, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)
 
 
