@@ -11,6 +11,7 @@ from apps.accounts.models import UserBlock
 from apps.chat.models import Chat, Message, MessageRead
 from apps.chat.serializers import ChatSerializer, ChatListSerializer, CreateGroupSerializer, ChatSettingSerializer, \
     MessageSerializer, PaginatedMessageSerializer
+from config.utils import PAGINATION_PARAMETERS
 
 
 class ChatView(APIView):
@@ -189,11 +190,13 @@ class MessageListAPIView(APIView):
     @extend_schema(
         responses={200: PaginatedMessageSerializer()},
         tags=['Chat'],
-        description='Get chat messages'
+        description='Get chat messages',
+        parameters=PAGINATION_PARAMETERS
     )
     def get(self, request, chat_id):
         queryset = Message.objects.filter(chat__id=chat_id)
         paginator = PageNumberPagination()
+        paginator.page_size_query_param = 'page_size'
         paginated_queryset = paginator.paginate_queryset(queryset, request)
         serializer = MessageSerializer(paginated_queryset, many=True, context={'request': request})
         return paginator.get_paginated_response(serializer.data)

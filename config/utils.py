@@ -1,4 +1,6 @@
 from django.db import models
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter
 from rest_framework import serializers
 
 
@@ -23,3 +25,14 @@ class TimestampField(serializers.IntegerField):
 
     def to_representation(self, value) -> int:
         return int(value.timestamp())
+
+PAGINATION_PARAMETERS = [
+    OpenApiParameter(
+        'page', type=OpenApiTypes.INT, location=OpenApiParameter.QUERY,
+        description='A page number within the paginated result set.'
+    ),
+    OpenApiParameter(
+        'page_size', type=OpenApiTypes.INT, location=OpenApiParameter.QUERY,
+        description='Number of results to return per page.'
+    )
+]

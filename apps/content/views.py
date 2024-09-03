@@ -13,7 +13,7 @@ from apps.content.models import Content, Like, SavedContent, Tag, ContentReport
 from apps.content.serializers import TagSerializer, ContentSerializer, ContentWithoutUserSerializer, \
     ContentReportSerializer, PaginatedContentSerializer, ContentListSerializer
 from apps.notification.models import Notification
-
+from config.utils import PAGINATION_PARAMETERS
 
 CONTENT_MANUAL_PARAMETERS = [
     OpenApiParameter('search', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Searching"),
@@ -22,24 +22,6 @@ CONTENT_MANUAL_PARAMETERS = [
     ),
 ]
 
-GROW_AND_DISCOVER_PARAMETERS = [
-    OpenApiParameter(
-        'page', type=OpenApiTypes.INT, location=OpenApiParameter.QUERY,
-        description='A page number within the paginated result set.'
-    ),
-    OpenApiParameter(
-        'page_size', type=OpenApiTypes.INT, location=OpenApiParameter.QUERY,
-        description='Number of results to return per page.'
-    )
-]
-
-# [x] grow va disc faqat content_type == content
-# [x] myself contents and messages
-# [x] mention notif
-# [x] message yaratish xato bor
-# [X] pagi contents and chat messages
-# [ ] chatda content plan name
-# [ ] subs and superhero count
 
 class ContentAPIView(APIView):
     serializer_class = ContentSerializer
@@ -209,7 +191,7 @@ class GrowContentAPIView(APIView):
         responses={200: PaginatedContentSerializer()},
         tags=['Content'],
         description='Get grow contents',
-        parameters=GROW_AND_DISCOVER_PARAMETERS
+        parameters=PAGINATION_PARAMETERS
     )
     def get(self, request):
         user = request.user
@@ -230,7 +212,7 @@ class DiscoverContentAPIView(APIView):
         responses={200: PaginatedContentSerializer()},
         tags=['Content'],
         description='Get discover contents',
-        parameters=GROW_AND_DISCOVER_PARAMETERS
+        parameters=PAGINATION_PARAMETERS
     )
     def get(self, request):
         user = request.user
