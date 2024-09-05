@@ -116,7 +116,7 @@ class ChatListSerializer(ChatSerializer):
 
     @extend_schema_field(MessageSerializer())
     def get_last_message(self, obj) -> str:
-        _last_message = obj.messages.last()
+        _last_message = obj.messages.first()
         serializer = MessageSerializer(obj.messages.last(), context=self.context)
         return serializer.data if _last_message else None
 
