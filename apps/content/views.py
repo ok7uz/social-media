@@ -83,7 +83,7 @@ class ContentDetailAPIView(APIView):
             Content.objects.select_related('user').prefetch_related('tags', 'tagged_users'),
             id=content_id
         )
-        serializer = ContentSerializer(content, data=request.data, context={'request': request})
+        serializer = ContentSerializer(content, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

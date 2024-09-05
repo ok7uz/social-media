@@ -110,12 +110,10 @@ class ContentSerializer(serializers.ModelSerializer):
         main_tag_name = validated_data.pop('main_tag_name', None)
         tags = validated_data.pop('tag_list', None)
         tagged_users = validated_data.pop('tagged_user_list', None)
-
-        # Complete this part
-
-        # content_plan = validated_data.pop('content_plan', instance.content_plan)
-        # content_plan = get_object_or_404(ContentPlan, id=content_plan_id)
-        # validated_data['content_plan'] = content_plan
+        content_plan = validated_data.pop('content_plan', None)
+        if content_plan:
+            content_plan = get_object_or_404(ContentPlan, id=content_plan['id'])
+            instance.content_plan = content_plan
         if main_tag_name:
             main_tag, = Tag.objects.get_or_create(name=main_tag_name)
             instance.main_tag = main_tag
