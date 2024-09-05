@@ -101,7 +101,7 @@ class ChatListSerializer(ChatSerializer):
         return chat
 
     @extend_schema_field(serializers.ChoiceField(choices=TYPE))
-    def get_type(self, obj) -> str:
+    def get_type(self, obj) -> str | None:
         if obj.is_group:
             return 'group'
         user = self.context['request'].user
@@ -117,7 +117,7 @@ class ChatListSerializer(ChatSerializer):
     @extend_schema_field(MessageSerializer())
     def get_last_message(self, obj) -> str:
         _last_message = obj.messages.first()
-        serializer = MessageSerializer(obj.messages.last(), context=self.context)
+        serializer = MessageSerializer(_last_message, context=self.context)
         return serializer.data if _last_message else None
 
     @extend_schema_field(serializers.IntegerField())
@@ -178,7 +178,8 @@ class ChatSettingSerializer(serializers.ModelSerializer):
         model = ChatSetting
         fields = ('message_first_permission', 'response_permissions')
 
-    def validate_reponse_permissions(self, value):
+    @staticmethod
+    def validate_response_permissions(value):
         if not ('follower' in value or 'subscriber' in value or 'superhero' in value):
             raise serializers.ValidationError('Invalid response permissions')
         return value
