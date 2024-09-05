@@ -60,7 +60,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 media_type=media_type,
                 media_aspect_ratio=media_aspect_ratio
             )
-            MessageRead.objects.create(message=message, user=self.user)
+            await MessageRead.objects.acreate(message=message, user=self.user)
 
             await self.channel_layer.group_send(
                 self.room_group_name,
