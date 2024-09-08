@@ -18,7 +18,8 @@ from config.utils import PAGINATION_PARAMETERS
 CONTENT_MANUAL_PARAMETERS = [
     OpenApiParameter('search', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Searching"),
     OpenApiParameter(
-        'type', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Content Type", enum=Content.Type
+        'type', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Content Type",
+        enum=Content.ContentType
     ),
 ]
 

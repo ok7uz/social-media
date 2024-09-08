@@ -5,18 +5,18 @@ from apps.accounts.models import User
 from config.utils import CustomAutoField
 
 
-class PriceType(models.TextChoices):
-    WEEK = 'week', 'Week'
-    MONTH = 'month', 'Month'
-    FREE = 'free', 'Free'
-
-
 class ContentPlan(models.Model):
+
+    class PlanPriceTypeEnum(models.TextChoices):
+        WEEK = 'week', 'Week'
+        MONTH = 'month', 'Month'
+        FREE = 'free', 'Free'
+
     id = CustomAutoField(primary_key=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     name = models.CharField(max_length=256)
     price = models.PositiveIntegerField(null=True)
-    price_type = models.CharField(max_length=10, choices=PriceType, default=PriceType.FREE)
+    price_type = models.CharField(max_length=10, choices=PlanPriceTypeEnum, default=PlanPriceTypeEnum.FREE)
     trial_days = models.PositiveIntegerField(null=True)
     trial_discount_percent = models.PositiveIntegerField(null=True)
     trial_description = models.TextField(null=True)

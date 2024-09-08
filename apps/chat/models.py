@@ -25,7 +25,7 @@ class Chat(models.Model):
 
 class Message(models.Model):
 
-    class MediaType(models.TextChoices):
+    class MessageMediaTypeEnum(models.TextChoices):
         IMAGE = 'image', 'Image'
         VIDEO = 'video', 'Video'
         FILE = 'file', 'File'
@@ -36,7 +36,7 @@ class Message(models.Model):
     sender = models.ForeignKey(User, related_name='messages', on_delete=models.SET_NULL, null=True, db_index=True)
     content = models.TextField(null=True)
     media = models.FileField(upload_to='messages/media/', null=True)
-    media_type = models.CharField(max_length=10, choices=MediaType, null=True)
+    media_type = models.CharField(max_length=10, choices=MessageMediaTypeEnum, null=True)
     thumbnail = models.FileField(upload_to='messages/media/', null=True)
     media_aspect_ratio = models.FloatField(null=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -63,15 +63,16 @@ class MessageRead(models.Model):
 
 class ChatSetting(models.Model):
 
-    class MessageFirstChoices(models.TextChoices):
+    class MessageFirstChoicesEnum(models.TextChoices):
         SUPERHERO = 'superhero', 'Superhero'
         NOBODY = 'nobody', 'Nobody'
 
     id = CustomAutoField(primary_key=True, editable=False)
     user = models.OneToOneField(User, related_name='chat_settings', on_delete=models.CASCADE, db_index=True)
-    message_first_permission = models.CharField(max_length=10, choices=MessageFirstChoices,
-                                                default=MessageFirstChoices.SUPERHERO)
-    response_permissions = models.JSONField(default=(lambda: {'superhero': True, 'subscriber': True, 'follower': True})())
+    message_first_permission = models.CharField(max_length=10, choices=MessageFirstChoicesEnum,
+                                                default=MessageFirstChoicesEnum.SUPERHERO)
+    default_permissions = lambda : dict({'superhero': True, 'subscriber': True, 'follower': True})
+    response_permissions = models.JSONField(default=default_permissions)
 
     class Meta:
         db_table = 'chat_settings'

@@ -26,11 +26,11 @@ class Tag(models.Model):
 
 class Content(models.Model):
 
-    class Type(models.TextChoices):
+    class ContentType(models.TextChoices):
         CONTENT = 'content', 'Content'
         MESSAGE = 'message', 'Message'
 
-    class MediaType(models.TextChoices):
+    class ContentMediaType(models.TextChoices):
         VIDEO = 'video', 'Video'
         AUDIO = 'audio', 'Audio'
         TEXT = 'text', 'Text'
@@ -40,12 +40,13 @@ class Content(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contents', db_index=True)
     text = models.CharField(max_length=255, null=True)
     media = models.FileField(upload_to='contents/', null=True)
-    media_type = models.CharField(max_length=10, choices=MediaType, null=True)
+    media_preview = models.FileField(upload_to='contents/', null=True)
+    media_type = models.CharField(max_length=10, choices=ContentMediaType, null=True)
     media_aspect_ratio = models.FloatField(null=True)
     thumbnail = models.FileField(upload_to='contents/', null=True)
     content_plan = models.ForeignKey(ContentPlan, on_delete=models.SET_NULL, null=True, related_name='contents')
     banner = models.FileField(upload_to='banners/', null=True)
-    type = models.CharField(max_length=10, choices=Type)
+    type = models.CharField(max_length=10, choices=ContentType)
     main_tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, null=True, related_name='main_contents')
     tags = models.ManyToManyField(Tag, related_name='contents', db_index=True)
     tagged_users = models.ManyToManyField(User, related_name='tagged_contents', db_index=True)

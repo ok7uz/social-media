@@ -9,7 +9,7 @@ from config.utils import CustomAutoField
 
 class Notification(models.Model):
 
-    class Types(models.TextChoices):
+    class NotificationTypeEnum(models.TextChoices):
         FOLLOW = 'follow', 'Follow'
         CONTENT = 'content', 'Content'
         MENTION = 'mention', 'Mention'
@@ -18,7 +18,7 @@ class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     title = models.CharField(max_length=255)
     body = models.TextField()
-    type = models.CharField(max_length=10, choices=Types)
+    type = models.CharField(max_length=10, choices=NotificationTypeEnum)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

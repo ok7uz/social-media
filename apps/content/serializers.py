@@ -49,9 +49,9 @@ class ContentSerializer(serializers.ModelSerializer):
         model = Content
         fields = (
             'id', 'user', 'text', 'comment_count', 'type', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
-            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'thumbnail', 'tag_list',
-            'tags', 'tagged_users', 'content_plan_id', 'media_aspect_ratio', 'banner', 'has_subscribed', 'is_following',
-            'content_plan'
+            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_preview', 'media_type',
+            'thumbnail', 'tag_list', 'tags', 'tagged_users', 'content_plan_id', 'media_aspect_ratio', 'banner',
+            'has_subscribed', 'is_following', 'content_plan'
         )
 
     def get_has_liked(self, obj) -> bool:
@@ -144,8 +144,9 @@ class ContentListSerializer(ContentSerializer):
         model = Content
         fields = (
             'id', 'user', 'text', 'comment_count', 'type', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
-            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'thumbnail', 'tag_list',
-            'tags', 'tagged_users', 'media_aspect_ratio', 'banner', 'has_subscribed', 'is_following',
+            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_preview', 'media_type',
+            'thumbnail', 'tag_list', 'tags', 'tagged_users', 'media_aspect_ratio', 'banner', 'has_subscribed',
+            'is_following',
         )
 
 
