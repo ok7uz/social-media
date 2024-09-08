@@ -7,7 +7,7 @@ from apps.content.models import *
 class ContentAdmin(admin.ModelAdmin):
     list_display = ('text', 'user', 'tag_names', 'created_at')
     filter_horizontal = ('tags',)
-    readonly_fields = ('tag_names',)
+    readonly_fields = ('tag_names', 'thumbnail')
 
     @staticmethod
     def tag_names(obj):

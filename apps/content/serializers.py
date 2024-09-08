@@ -47,7 +47,6 @@ class ContentSerializer(serializers.ModelSerializer):
     has_subscribed = serializers.SerializerMethodField(read_only=True)
     is_following = serializers.SerializerMethodField(read_only=True)
     tagged_users = UserListSerializer(many=True, read_only=True)
-    thumbnail = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Content
@@ -75,16 +74,6 @@ class ContentSerializer(serializers.ModelSerializer):
     def get_has_saved(self, obj) -> bool:
         user = self.context.get('request').user
         return SavedContent.objects.filter(content=obj, user=user).exists()
-
-    @extend_schema_field(serializers.URLField(allow_null=True))
-    def get_thumbnail(self, obj):
-        if not obj.media or obj.media_type != 'video':
-            return None
-
-        thumbnail_path = obj.media.path + '_thumbnail.jpg'
-        ffmpeg.input(obj.media.path, ss=1).output(thumbnail_path, vframes=1).run(capture_stdout=True, capture_stderr=True)
-        request = self.context.get('request')
-        return request.build_absolute_uri(obj.media.url + '_thumbnail.jpg')
 
     def create(self, validated_data):
         main_tag_name = validated_data.pop('main_tag_name', None)

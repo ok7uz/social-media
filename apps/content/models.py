@@ -1,4 +1,7 @@
+import ffmpeg
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from apps.accounts.models import User
 from apps.content_plan.models import ContentPlan
@@ -39,6 +42,7 @@ class Content(models.Model):
     media = models.FileField(upload_to='contents/', null=True)
     media_type = models.CharField(max_length=10, choices=MediaType, null=True)
     media_aspect_ratio = models.FloatField(null=True)
+    thumbnail = models.FileField(upload_to='contents/thumbnails/', null=True)
     content_plan = models.ForeignKey(ContentPlan, on_delete=models.SET_NULL, null=True, related_name='contents')
     banner = models.FileField(upload_to='banners/', null=True)
     type = models.CharField(max_length=10, choices=Type)
@@ -69,6 +73,15 @@ class Content(models.Model):
 
     def __str__(self):
         return self.text if self.text else 'Untitled'
+
+@receiver(post_save, sender=Content)
+def content_post_save(sender, instance, created, **kwargs):
+    if created and instance.media and instance.media_type == 'video':
+        thumbnail_path = instance.media.path + '_thumbnail.jpg'
+        ffmpeg.input(instance.media.path, ss=1).output(thumbnail_path, vframes=1).run(capture_stdout=True,
+                                                                                 capture_stderr=True)
+        instance.thumbnail = str(instance.media) + '_thumbnail.jpg'
+        instance.save()
 
 
 class SavedContent(models.Model):
