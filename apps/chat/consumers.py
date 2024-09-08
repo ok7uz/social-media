@@ -58,7 +58,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 content=message_text,
                 media=media,
                 media_type=media_type,
-                media_aspect_ratio=media_aspect_ratio
+                media_aspect_ratio=media_aspect_ratio,
+                thumbnail=f'{media}_thumbnail.jpg' if media and media_type == 'video' else None
             )
             await MessageRead.objects.acreate(message=message, user=self.user)
 

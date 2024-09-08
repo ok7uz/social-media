@@ -1,4 +1,7 @@
+import ffmpeg
 from django.core.files.storage import default_storage
+from django.core.files.base import File
+from django.core.files.uploadedfile import TemporaryUploadedFile
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 from drf_spectacular.utils import extend_schema_field
@@ -16,7 +19,9 @@ class MessageSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Message
-        fields = ['id', 'sender_username', 'content', 'media', 'media_type', 'media_aspect_ratio', 'created_at']
+        fields = [
+            'id', 'sender_username', 'content', 'media', 'media_type', 'thumbnail', 'media_aspect_ratio', 'created_at'
+        ]
 
 
 class PaginatedMessageSerializer(serializers.Serializer):
@@ -166,8 +171,11 @@ class MediaSerializer(serializers.Serializer):
         return validated_data
 
     def validate(self, attrs):
-        file = attrs.get('media')
-        file_path = default_storage.save(file.name, file)
+        temporary_file: TemporaryUploadedFile = attrs.get('media')
+        file_path = default_storage.save(f'messages/{temporary_file.name}', temporary_file)
+        file: File = default_storage.open(file_path)
+        thumbnail_path = file.name + '_thumbnail.jpg'
+        ffmpeg.input(file.name, ss=1).output(thumbnail_path, vframes=1).run(capture_stdout=True, capture_stderr=True)
         return {'media': file_path}
 
 

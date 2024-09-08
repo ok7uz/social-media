@@ -42,7 +42,7 @@ class Content(models.Model):
     media = models.FileField(upload_to='contents/', null=True)
     media_type = models.CharField(max_length=10, choices=MediaType, null=True)
     media_aspect_ratio = models.FloatField(null=True)
-    thumbnail = models.FileField(upload_to='contents/thumbnails/', null=True)
+    thumbnail = models.FileField(upload_to='contents/', null=True)
     content_plan = models.ForeignKey(ContentPlan, on_delete=models.SET_NULL, null=True, related_name='contents')
     banner = models.FileField(upload_to='banners/', null=True)
     type = models.CharField(max_length=10, choices=Type)

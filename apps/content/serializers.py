@@ -1,8 +1,5 @@
-import ffmpeg
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
-from django.template.context_processors import media
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.accounts.models import User, Follow
@@ -147,8 +144,8 @@ class ContentListSerializer(ContentSerializer):
         model = Content
         fields = (
             'id', 'user', 'text', 'comment_count', 'type', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
-            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'tag_list', 'tags',
-            'tagged_users', 'media_aspect_ratio', 'banner', 'has_subscribed', 'is_following',
+            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'thumbnail', 'tag_list',
+            'tags', 'tagged_users', 'media_aspect_ratio', 'banner', 'has_subscribed', 'is_following',
         )
 
 

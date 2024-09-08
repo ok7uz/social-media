@@ -23,20 +23,21 @@ class Chat(models.Model):
         ordering = ('-created_at',)
 
 
-class MediaType(models.TextChoices):
-    IMAGE = 'image', 'Image'
-    VIDEO = 'video', 'Video'
-    FILE = 'file', 'File'
-    VOICE = 'voice', 'Voice'
-
-
 class Message(models.Model):
+
+    class MediaType(models.TextChoices):
+        IMAGE = 'image', 'Image'
+        VIDEO = 'video', 'Video'
+        FILE = 'file', 'File'
+        VOICE = 'voice', 'Voice'
+
     id = CustomAutoField(primary_key=True, editable=False)
     chat = models.ForeignKey(Chat, related_name='messages', on_delete=models.CASCADE, db_index=True)
     sender = models.ForeignKey(User, related_name='messages', on_delete=models.SET_NULL, null=True, db_index=True)
     content = models.TextField(null=True)
     media = models.FileField(upload_to='messages/media/', null=True)
     media_type = models.CharField(max_length=10, choices=MediaType, null=True)
+    thumbnail = models.FileField(upload_to='messages/media/', null=True)
     media_aspect_ratio = models.FloatField(null=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
