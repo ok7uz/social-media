@@ -2,6 +2,7 @@ import ffmpeg
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.template.context_processors import media
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.accounts.models import User, Follow
@@ -75,6 +76,7 @@ class ContentSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         return SavedContent.objects.filter(content=obj, user=user).exists()
 
+    @extend_schema_field(serializers.URLField(allow_null=True))
     def get_thumbnail(self, obj):
         if not obj.media or obj.media_type != 'video':
             return None
