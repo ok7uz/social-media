@@ -74,7 +74,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message_serializer = MessageSerializer(event['message'], context={'request': CustomHttpRequest(self.scope)})
         await self.send(text_data=json.dumps({
             'message': message_serializer.data,
-            'user': self.user.username
+            'user': event['message'].sender.username
         }))
 
     @staticmethod

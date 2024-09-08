@@ -1,5 +1,7 @@
+import ffmpeg
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django.template.context_processors import media
 from rest_framework import serializers
 
 from apps.accounts.models import User, Follow
@@ -44,13 +46,14 @@ class ContentSerializer(serializers.ModelSerializer):
     has_subscribed = serializers.SerializerMethodField(read_only=True)
     is_following = serializers.SerializerMethodField(read_only=True)
     tagged_users = UserListSerializer(many=True, read_only=True)
+    thumbnail = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Content
         fields = (
             'id', 'user', 'text', 'comment_count', 'type', 'like_count', 'has_liked', 'main_tag_name', 'main_tag',
-            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'tag_list', 'tags',
-            'tagged_users', 'content_plan_id', 'media_aspect_ratio', 'banner', 'has_subscribed', 'is_following',
+            'tagged_user_list', 'has_saved', 'created_at', 'updated_at', 'media', 'media_type', 'thumbnail', 'tag_list',
+            'tags', 'tagged_users', 'content_plan_id', 'media_aspect_ratio', 'banner', 'has_subscribed', 'is_following',
             'content_plan'
         )
 
@@ -71,6 +74,15 @@ class ContentSerializer(serializers.ModelSerializer):
     def get_has_saved(self, obj) -> bool:
         user = self.context.get('request').user
         return SavedContent.objects.filter(content=obj, user=user).exists()
+
+    def get_thumbnail(self, obj):
+        if not obj.media or obj.media_type != 'video':
+            return None
+
+        thumbnail_path = obj.media.path + '_thumbnail.jpg'
+        ffmpeg.input(obj.media.path, ss=1).output(thumbnail_path, vframes=1).run(capture_stdout=True, capture_stderr=True)
+        request = self.context.get('request')
+        return request.build_absolute_uri(obj.media.url + '_thumbnail.jpg')
 
     def create(self, validated_data):
         main_tag_name = validated_data.pop('main_tag_name', None)

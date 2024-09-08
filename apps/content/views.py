@@ -69,6 +69,7 @@ class ContentDetailAPIView(APIView):
             Content.objects.select_related('user').prefetch_related('tags', 'tagged_users'),
             id=content_id
         )
+        content.media.thumbnail = content.media.get_thumbnail()
         serializer = ContentSerializer(content, context={'request': request})
         return Response(serializer.data)
 
